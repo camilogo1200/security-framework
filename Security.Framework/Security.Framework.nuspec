@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<package >
+	<!--
+	Any nuget reference you add will be included in the nuget package as a dependency without you
+	having to add it in here.
+	
+	For more info on how to compose a nuspec file see http://docs.nuget.org/create/nuspec-reference 
+	-->
+
+	<metadata>
+		<!-- This will use the AssemblyName -->
+		<id>$id$</id>
+		<!-- This will use the AssemblyVersion -->
+		<version>$version$</version>
+		<title>Security.Framework</title>
+		<description>Framework de seguridad y criptografia para interrapidisimo</description>
+		<authors>Cristhian C. Gómez N, Yeison G. Albarracin M</authors>
+		<owners>Interrapidisimo S.A</owners>
+		<requireLicenseAcceptance>false</requireLicenseAcceptance>
+		<releaseNotes>Initial release.</releaseNotes>
+		<copyright>Copyright 2017</copyright>
+		<tags>ANY</tags>
+	</metadata>
+</package>

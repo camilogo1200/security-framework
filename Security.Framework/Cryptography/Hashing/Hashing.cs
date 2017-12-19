@@ -22,7 +22,7 @@ namespace Security.Framework.Cryptography.Hashing
         SHAKE128, SHAKE256,
         TIGER,
         WHIRLPOOL,
-    };
+    }
 
     public class Hashing : IHashing
     {
@@ -41,9 +41,7 @@ namespace Security.Framework.Cryptography.Hashing
             {
                 //TODO throw new SecurityException();
             }
-            byte[] result = null;
-
-            result = doHashing(plainText, algorithm);
+            byte[] result = doHashing(plainText, algorithm);
 
             return result;
         }
@@ -73,13 +71,12 @@ namespace Security.Framework.Cryptography.Hashing
             byte[] hash = null;
             if (algorithm.ToString().Contains("KECCAK") || algorithm.ToString().Contains("SHA3_"))
             {
-                hash = doSHA3Hashing(message, algorithm);
+                return doSHA3Hashing(message, algorithm);
             }
             else
             {
-                hash = doHashes(message, algorithm);
+                return doHashes(message, algorithm);
             }
-            return hash;
         }
 
         private byte[] doHashes(string message, DigestAlgorithm algorithm)

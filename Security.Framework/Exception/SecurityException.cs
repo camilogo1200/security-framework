@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Security.Framework.Exception
 {
-    public enum SecurityExceptionMessages { SEC_InvalidHostURI, SEC_InvalidCredentials, SEC_ErrorOnTokenRequest };
+    public enum SecurityExceptionMessages { SEC_InvalidHostURI, SEC_InvalidCredentials, SEC_ErrorOnTokenRequest }
 
     [Serializable()]
     public class SecurityException : System.Exception

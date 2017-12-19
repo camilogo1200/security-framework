@@ -12,8 +12,8 @@ namespace Security.Framework.Communication
     /// </summary>
     public class SecureRequest : ISecureRequestHandling
     {
-        private Hashing hash = new Hashing();
-        private CryptographyPGP crypto = new CryptographyPGP();
+        private readonly  Hashing hash = new Hashing();
+        private readonly CryptographyPGP crypto = new CryptographyPGP();
         private string _encryptedBody = null;
 
         /// <summary>
