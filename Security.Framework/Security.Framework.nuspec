@@ -17,7 +17,7 @@
 		<authors>Cristhian C. Gómez N, Yeison G. Albarracin M</authors>
 		<owners>Interrapidisimo S.A</owners>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
-		<releaseNotes>Initial release.</releaseNotes>
+		<releaseNotes>Cambio en TokenSession para retrocompatibilidad con apis en seguridad</releaseNotes>
 		<copyright>Copyright 2017</copyright>
 		<tags>ANY</tags>
 	</metadata>

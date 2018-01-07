@@ -2,6 +2,7 @@
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using Cache.Factory.Util;
 using Newtonsoft.Json;
 using Org.BouncyCastle.Bcpg;
 using Org.BouncyCastle.Bcpg.OpenPgp;
@@ -11,7 +12,6 @@ using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.IO;
-using Security.Framework.Cache;
 using Security.Framework.Cryptography.Files;
 using Security.Framework.Cryptography.Interfaces;
 using Security.Framework.Exception;

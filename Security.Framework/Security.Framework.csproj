@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Security.Framework</RootNamespace>
     <AssemblyName>Security.Framework</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
     <NuGetPackageImportStamp>
@@ -37,8 +37,8 @@
       <HintPath>..\packages\BouncyCastle.1.8.1\lib\BouncyCastle.Crypto.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Cache.Factory, Version=0.9.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Cache.Factory.0.9.0.0\lib\net45\Cache.Factory.dll</HintPath>
+    <Reference Include="Cache.Factory, Version=1.1.0.1, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Cache.Factory.1.1.0.1\lib\net452\Cache.Factory.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.ApplicationServer.Caching.Client, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -118,7 +118,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Cache\UtilCache.cs" />
     <Compile Include="Communication\Interfaces\ISecureCommunicationHandling.cs" />
     <Compile Include="Communication\Interfaces\ISecureRequestHandling.cs" />
     <Compile Include="Communication\SecureCommunication.cs" />
@@ -148,6 +147,7 @@
     <EmbeddedResource Include="Properties\Messages.resx" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="ActionFilter\" />
     <Folder Include="Cryptography\PGP\Filters\" />
   </ItemGroup>
   <ItemGroup>

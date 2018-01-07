@@ -6,7 +6,7 @@ namespace Security.Framework
     {
         public string UserId { get; set; }
         public string Token { get; set; }
-        public string PublicKeyFilePath { get; set; }
+        public string PublicKey { get; set; }
         public string Username { get; set; }
         public int IdAplicacion { get; set; }
         public string MachineId { get; set; }

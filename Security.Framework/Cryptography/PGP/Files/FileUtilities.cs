@@ -3,8 +3,8 @@ using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using Cache.Factory.Util;
 using Org.BouncyCastle.Bcpg.OpenPgp;
-using Security.Framework.Cache;
 using Security.Framework.Cryptography.Crypto;
 using Security.Framework.Cryptography.Interfaces;
 using Security.Framework.Exception;
@@ -20,7 +20,7 @@ namespace Security.Framework.Cryptography.Files
         public PgpPublicKeyRing loadClientPublicCertificate(string tokenID)
         {
             PgpPublicKeyRing pgpPublicKeyRing = null;
-            folderPath = ((TokenSession)UtilCache.MemoryInstance.GetItem(tokenID)).PublicKeyFilePath;
+            folderPath = ((TokenSession)UtilCache.MemoryInstance.GetItem(tokenID)).PublicKey;
             //folderPath = ConfigurationManager.AppSettings["ClientCertificatesPath"];
             //certificateFileName = ConfigurationManager.AppSettings["clientPublicKeyFile"];
             Fullpath = folderPath;//Path.Combine(folderPath, certificateFileName);

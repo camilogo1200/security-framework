@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography;
 using System.Text;
-using Security.Framework.Cache;
+using Cache.Factory.Util;
 using Security.Framework.Cryptography.Crypto;
 
 namespace Security.Framework.TokenManager
