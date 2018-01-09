@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -9,6 +10,8 @@ using Org.BouncyCastle.Bcpg.OpenPgp;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Encodings;
 using Org.BouncyCastle.Crypto.Engines;
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Math;
 using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.IO;
@@ -25,6 +28,15 @@ namespace Security.Framework.Cryptography.Crypto
     /// </summary>
     public class CryptographyPGP : ICryptoPGP
     {
+
+        private readonly IHashing hashing = new Hashing.Hashing();
+        
+
+        public CryptographyPGP() {
+            GeneratePGPCertificates();
+        }
+
+
         /// <summary>
         /// Encrypt message (PGP)
         /// </summary>
@@ -109,7 +121,179 @@ namespace Security.Framework.Cryptography.Crypto
 
             return Encoding.UTF8.GetString(block);
         }
+   
+        public string GenerateHash512(string value)
+        {
+            return hashing.getHashingStr(value, Hashing.DigestAlgorithm.SHA_512);
+        }
 
+        private static void GeneratePGPCertificates()
+        {
+            IAsymmetricCipherKeyPairGenerator kpg = GeneratorUtilities.GetKeyPairGenerator("RSA");
+
+            string keyStrength = ConfigurationManager.AppSettings.Get("ServerPassphrase");
+            int strength = 0;
+            if (String.IsNullOrEmpty(keyStrength)) {
+                strength = 4096;
+            } else {
+                switch (keyStrength) {
+                    case "2048":
+                        strength = 2048;
+                        break;
+                    case "3072":
+                        strength = 3096;
+                        break;
+                    default:
+                        strength = 4096;
+                        break;
+                }
+            }
+
+            
+
+            kpg.Init(new RsaKeyGenerationParameters(BigInteger.ValueOf(0x10001), new SecureRandom(), 3072, 25));
+
+            AsymmetricCipherKeyPair kp = kpg.GenerateKeyPair();
+            string ServerPassphrase = ConfigurationManager.AppSettings.Get("ServerPassphrase");
+            if () {
+            throw new 
+                    }
+
+            string certificateFileName = ConfigurationManager.AppSettings["privateKeyFile"];
+
+            string passphrase = "_$_12345_$_";
+            string privateKeyFilename = "priv"+".pgp";
+            string publicKeyFilename = "pub"+".pgp";
+
+            ExportKeyPair(privateKeyFilename, publicKeyFilename, kp.Public, kp.Private, "John Doe < john@doe.com >,Jane Doe < jane@doe.com >", passphrase.ToCharArray(), true);
+
+        }
+
+
+        private static void ExportKeyPair(
+        string privateKeyFileName,
+        string publicKeyFileName,
+        AsymmetricKeyParameter publicKey,
+        AsymmetricKeyParameter privateKey,
+        string identity,
+        char[] passPhrase,
+        bool armor)
+        {
+
+            Stream secretOut = File.Create(privateKeyFileName);
+            Stream publicOut = File.Create(publicKeyFileName);
+
+            if (armor)
+            {
+                secretOut = new ArmoredOutputStream(secretOut);
+            }
+
+            PgpSecretKey secretKey = new PgpSecretKey(
+                PgpSignature.DefaultCertification,
+                PublicKeyAlgorithmTag.RsaGeneral,
+                publicKey,
+                privateKey,
+                DateTime.UtcNow,
+                identity,
+                SymmetricKeyAlgorithmTag.Cast5,
+                passPhrase,
+                null,
+                null,
+                new SecureRandom()
+                );
+
+
+            secretKey.Encode(secretOut);
+
+            if (armor)
+            {
+                secretOut.Close();
+                publicOut = new ArmoredOutputStream(publicOut);
+            }
+
+            PgpPublicKey key = secretKey.PublicKey;
+
+            key.Encode(publicOut);
+
+            if (armor)
+            {
+                publicOut.Close();
+            }
+
+            secretOut.Close();
+            publicOut.Close();
+        }
+
+
+        #region Obsolete  GPG llamado a consola 
+
+        [Obsolete("Utiliza llamado a consola, no escalable")]
+        public static string EncryptFile(string rawEncrypted, string fingerprint)
+        {
+            fingerprint = JsonConvert.DeserializeObject<string>(fingerprint);
+            if (!UtilCache.MemoryInstance.ExistItem(fingerprint) || !UtilCache.MemoryInstance.ExistItem(Messages.ParamRutaMensajeDecriptado))
+                throw new SecurityException(SecurityExceptionMessages.SEC_InvalidCredentials, "No se encontraron rutas de archivos de encripcion persistentes.", null);
+
+            TokenSession currentClient = (TokenSession)UtilCache.MemoryInstance.GetItem(fingerprint);
+            string rutaMensajes = Path.GetDirectoryName((string)UtilCache.MemoryInstance.GetItem(Messages.ParamRutaMensajeDecriptado));
+
+            string rutaMensajeEncryptado = string.Concat(rutaMensajes, "\\", currentClient.MachineId, "Encrypted.asc");
+            string rutaMensajeDecryptado = string.Concat(rutaMensajes, "\\", currentClient.MachineId, "Decrypted.asc");
+
+            System.IO.File.WriteAllLines(rutaMensajeEncryptado, rawEncrypted.Split('\n'));
+
+            FileInfo info = new FileInfo(rutaMensajeEncryptado);
+            //string decryptedFileName = info.FullName.Substring(0, info.FullName.LastIndexOf('.')) + "Dec.TXT";
+            //string encryptedFileName = info.FullName;
+            System.Diagnostics.ProcessStartInfo psi = new System.Diagnostics.ProcessStartInfo("cmd.exe");
+            psi.CreateNoWindow = false;
+            psi.UseShellExecute = false;
+            psi.RedirectStandardInput = true;
+            psi.RedirectStandardOutput = true;
+            psi.RedirectStandardError = true;
+            psi.WorkingDirectory = @System.Configuration.ConfigurationManager.AppSettings["GPGDirectory"].ToString();
+            System.Diagnostics.Process process = System.Diagnostics.Process.Start(psi);
+            //string sCommandLine = "echo " + passPhraseCertPrivServ + "|gpg.exe --passphrase-fd 0 --batch --verbose --yes --output " + rutaMensajeDecryptado + @" --decrypt " + rutaMensajeEncryptado;
+            string sCommandLine = "gpg --batch --armor --trust-model always -e -r " + currentClient.MachineId + " " + rutaMensajeEncryptado;
+            process.StandardInput.WriteLine(sCommandLine);
+            process.StandardInput.Flush();
+            process.StandardInput.Close();
+            process.WaitForExit();
+            //System.Diagnostics.Process.Start("CMD.exe", sCommandLine);
+            string result = process.StandardOutput.ReadToEnd();
+            string error = process.StandardError.ReadToEnd();
+            process.Close();
+            string resultLines = string.Join("\n", File.ReadAllLines(string.Concat(rutaMensajeEncryptado, ".asc")));
+            File.Delete(string.Concat(rutaMensajeEncryptado, ".asc"));
+            return resultLines;
+        }
+
+        [Obsolete("No debe ser utilizado, este metodo utiliza el llamado a consola de gpg")]
+        public static bool ImportPublicKey(string rutaPubCert, string clientId)
+        {
+            FileInfo info = new FileInfo(rutaPubCert);
+            System.Diagnostics.ProcessStartInfo psi = new System.Diagnostics.ProcessStartInfo("cmd.exe");
+            psi.CreateNoWindow = false;
+            psi.UseShellExecute = false;
+            psi.RedirectStandardInput = true;
+            psi.RedirectStandardOutput = true;
+            psi.RedirectStandardError = true;
+            psi.WorkingDirectory = @System.Configuration.ConfigurationManager.AppSettings["GPGDirectory"].ToString();
+            System.Diagnostics.Process process = System.Diagnostics.Process.Start(psi);
+            //string sCommandLine = "echo " + passPhraseCertPrivServ + "|gpg.exe --passphrase-fd 0 --batch --verbose --yes --output " + rutaMensajeDecryptado + @" --decrypt " + rutaMensajeEncryptado;
+            string sCommandLine = string.Concat("gpg --import ", rutaPubCert);
+            process.StandardInput.WriteLine(sCommandLine);
+            process.StandardInput.Flush();
+            process.StandardInput.Close();
+            process.WaitForExit();
+
+            string result = process.StandardOutput.ReadToEnd();
+            string error = process.StandardError.ReadToEnd();
+            process.Close();
+            return true;
+        }
+
+        [Obsolete("Utiliza llamado a consola, no escalable")]
         public static string DecryptFile(string rawEncrypted)
         {
             if (!UtilCache.MemoryInstance.ExistItem(Messages.ParamRutaMensajeDecriptado) || !UtilCache.MemoryInstance.ExistItem(Messages.ParamRutaMensajeEncriptado))
@@ -155,80 +339,8 @@ namespace Security.Framework.Cryptography.Crypto
             return resultLines;
         }
 
-        public string GenerateHash512(string value)
-        {
-            string resultString = string.Empty;
-            using (SHA512 se = new SHA512Managed())
-            {
-                byte[] buffer = se.ComputeHash(Encoding.UTF8.GetBytes(value));
-                resultString = BitConverter.ToString(buffer).Replace("-", "").ToLower();
-            }
 
-            return resultString;
-        }
+        #endregion
 
-        public static string EncryptFile(string rawEncrypted, string fingerprint)
-        {
-            fingerprint = JsonConvert.DeserializeObject<string>(fingerprint);
-            if (!UtilCache.MemoryInstance.ExistItem(fingerprint) || !UtilCache.MemoryInstance.ExistItem(Messages.ParamRutaMensajeDecriptado))
-                throw new SecurityException(SecurityExceptionMessages.SEC_InvalidCredentials, "No se encontraron rutas de archivos de encripcion persistentes.", null);
-
-            TokenSession currentClient = (TokenSession)UtilCache.MemoryInstance.GetItem(fingerprint);
-            string rutaMensajes = Path.GetDirectoryName((string)UtilCache.MemoryInstance.GetItem(Messages.ParamRutaMensajeDecriptado));
-
-            string rutaMensajeEncryptado = string.Concat(rutaMensajes, "\\", currentClient.MachineId, "Encrypted.asc");
-            string rutaMensajeDecryptado = string.Concat(rutaMensajes, "\\", currentClient.MachineId, "Decrypted.asc");
-
-            System.IO.File.WriteAllLines(rutaMensajeEncryptado, rawEncrypted.Split('\n'));
-
-            FileInfo info = new FileInfo(rutaMensajeEncryptado);
-            //string decryptedFileName = info.FullName.Substring(0, info.FullName.LastIndexOf('.')) + "Dec.TXT";
-            //string encryptedFileName = info.FullName;
-            System.Diagnostics.ProcessStartInfo psi = new System.Diagnostics.ProcessStartInfo("cmd.exe");
-            psi.CreateNoWindow = false;
-            psi.UseShellExecute = false;
-            psi.RedirectStandardInput = true;
-            psi.RedirectStandardOutput = true;
-            psi.RedirectStandardError = true;
-            psi.WorkingDirectory = @System.Configuration.ConfigurationManager.AppSettings["GPGDirectory"].ToString();
-            System.Diagnostics.Process process = System.Diagnostics.Process.Start(psi);
-            //string sCommandLine = "echo " + passPhraseCertPrivServ + "|gpg.exe --passphrase-fd 0 --batch --verbose --yes --output " + rutaMensajeDecryptado + @" --decrypt " + rutaMensajeEncryptado;
-            string sCommandLine = "gpg --batch --armor --trust-model always -e -r " + currentClient.MachineId + " " + rutaMensajeEncryptado;
-            process.StandardInput.WriteLine(sCommandLine);
-            process.StandardInput.Flush();
-            process.StandardInput.Close();
-            process.WaitForExit();
-            //System.Diagnostics.Process.Start("CMD.exe", sCommandLine);
-            string result = process.StandardOutput.ReadToEnd();
-            string error = process.StandardError.ReadToEnd();
-            process.Close();
-            string resultLines = string.Join("\n", File.ReadAllLines(string.Concat(rutaMensajeEncryptado, ".asc")));
-            File.Delete(string.Concat(rutaMensajeEncryptado, ".asc"));
-            return resultLines;
-        }
-
-        public static bool ImportPublicKey(string rutaPubCert, string clientId)
-        {
-            FileInfo info = new FileInfo(rutaPubCert);
-            System.Diagnostics.ProcessStartInfo psi = new System.Diagnostics.ProcessStartInfo("cmd.exe");
-            psi.CreateNoWindow = false;
-            psi.UseShellExecute = false;
-            psi.RedirectStandardInput = true;
-            psi.RedirectStandardOutput = true;
-            psi.RedirectStandardError = true;
-            psi.WorkingDirectory = @System.Configuration.ConfigurationManager.AppSettings["GPGDirectory"].ToString();
-            System.Diagnostics.Process process = System.Diagnostics.Process.Start(psi);
-            //string sCommandLine = "echo " + passPhraseCertPrivServ + "|gpg.exe --passphrase-fd 0 --batch --verbose --yes --output " + rutaMensajeDecryptado + @" --decrypt " + rutaMensajeEncryptado;
-            string sCommandLine = string.Concat("gpg --import ", rutaPubCert);
-            process.StandardInput.WriteLine(sCommandLine);
-            process.StandardInput.Flush();
-            process.StandardInput.Close();
-            process.WaitForExit();
-
-            string result = process.StandardOutput.ReadToEnd();
-            string error = process.StandardError.ReadToEnd();
-            process.Close();
-            return true;
-        }
     }
 }

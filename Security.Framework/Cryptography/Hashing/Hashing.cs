@@ -112,6 +112,13 @@ namespace Security.Framework.Cryptography.Hashing
             return Convert.ToBase64String(ba);
         }
 
+
+        public byte[] GetSaltBytes(int size) {
+            SecureRandom saltstring = new SecureRandom();
+            byte[] ba = saltstring.GenerateSeed(size);
+            return ba;
+        }
+
         private byte[] toByteArray(string input)
         {
             byte[] bytes = new byte[input.Length];

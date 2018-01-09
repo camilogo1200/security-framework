@@ -20,5 +20,7 @@ namespace Security.Framework.Cryptography.Interfaces
         /// <param name="algorithm">Algoritmo mediante el cual se realizara el hashing</param>
         /// <returns></returns>
         byte[] getHashing(String plainText, DigestAlgorithm algorithm);
+        string GetSaltString(int size);
+        byte[] GetSaltBytes(int size);
     }
 }

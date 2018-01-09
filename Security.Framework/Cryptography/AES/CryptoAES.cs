@@ -43,6 +43,26 @@ namespace Security.Framework.Cryptography.AES
 
             return result;
         }
+        public string EncryptDecrypt(String strToProcess, string passphrase, CryptographicProcess process)
+        {
+            bool isEncrypt = (process.ToString().Equals("Encrypt")) ? true : false;
+            strToProcess = strToProcess.Trim();
+            byte[] keyBytes = getKeyBytesAES(passphrase);
+            KeyParameter key = ParameterUtilities.CreateKeyParameter("AES", keyBytes);
+            IBufferedCipher cipher = CipherUtilities.GetCipher("AES/ECB/PKCS5PADDING");
+            cipher.Init(isEncrypt, key);
+
+            byte[] inputText = isEncrypt ? ASCIIEncoding.UTF8.GetBytes(strToProcess) : Convert.FromBase64String(strToProcess);
+
+            byte[] dec = cipher.DoFinal(inputText);
+
+            string result = isEncrypt ? Convert.ToBase64String(dec) : Encoding.UTF8.GetString(dec);
+
+            return result;
+        }
+
+
+
 
         /// <summary>
         /// Get key of the encryption
