@@ -5,6 +5,8 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Security.Framework", "Security.Framework\Security.Framework.csproj", "{B24EEBA0-EE06-431F-8036-442301D9EE55}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Security.Framework.Tester", "Security.Framework.Tester\Security.Framework.Tester.csproj", "{396F729D-8621-4AE6-8033-CF6DD4A42693}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,12 +17,16 @@ Global
 		{B24EEBA0-EE06-431F-8036-442301D9EE55}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B24EEBA0-EE06-431F-8036-442301D9EE55}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B24EEBA0-EE06-431F-8036-442301D9EE55}.Release|Any CPU.Build.0 = Release|Any CPU
+		{396F729D-8621-4AE6-8033-CF6DD4A42693}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{396F729D-8621-4AE6-8033-CF6DD4A42693}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{396F729D-8621-4AE6-8033-CF6DD4A42693}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{396F729D-8621-4AE6-8033-CF6DD4A42693}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		EnterpriseLibraryConfigurationToolBinariesPathV6 = packages\EnterpriseLibrary.Common.6.0.1304.0\lib\NET45
 		EnterpriseLibraryConfigurationToolBinariesPath = packages\Unity.2.1.505.0\lib\NET35;packages\Unity.Interception.2.1.505.0\lib\NET35;packages\EnterpriseLibrary.Common.5.0.505.0\lib\NET35;packages\EnterpriseLibrary.Caching.5.0.505.0\lib\NET35;packages\EnterpriseLibrary.Security.Cryptography.5.0.505.0\lib\NET35;packages\EnterpriseLibrary.Caching.Cryptography.5.0.505.0\lib\NET35
+		EnterpriseLibraryConfigurationToolBinariesPathV6 = packages\EnterpriseLibrary.Common.6.0.1304.0\lib\NET45
 	EndGlobalSection
 EndGlobal

@@ -3,6 +3,8 @@ using System.Configuration;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using Cache.Factory.Util;
 using Newtonsoft.Json;
 using Org.BouncyCastle.Bcpg;
@@ -29,11 +31,21 @@ namespace Security.Framework.Cryptography.Crypto
     public class CryptographyPGP : ICryptoPGP
     {
 
-        private readonly IHashing hashing = new Hashing.Hashing();
-        
+        private static readonly IHashing hashing = new Hashing.Hashing();
+        public string PrivateKeyFilename { get; set; }
+        public string PublicKeyFilename { get; set; }
+        public string ServerPassphrase { get; set; }
+        public AsymmetricCipherKeyPair KeyPair { get; set; }
 
-        public CryptographyPGP() {
-            GeneratePGPCertificates();
+        public string PublicKey { get; set; }
+        public string PrivateKey { get; set; }
+
+
+        PgpSecretKey SecretKey { get; set; }
+
+        public CryptographyPGP()
+        {
+            // GeneratePGPCertificates();
         }
 
 
@@ -121,56 +133,100 @@ namespace Security.Framework.Cryptography.Crypto
 
             return Encoding.UTF8.GetString(block);
         }
-   
+
         public string GenerateHash512(string value)
         {
             return hashing.getHashingStr(value, Hashing.DigestAlgorithm.SHA_512);
         }
 
-        private static void GeneratePGPCertificates()
+        public void GeneratePGPCertificates()
         {
             IAsymmetricCipherKeyPairGenerator kpg = GeneratorUtilities.GetKeyPairGenerator("RSA");
+            bool armored = true;
+            string fileExtension = null;
+            fileExtension = (armored) ? ".asc" : ".gpg";
 
-            string keyStrength = ConfigurationManager.AppSettings.Get("ServerPassphrase");
-            int strength = 0;
-            if (String.IsNullOrEmpty(keyStrength)) {
-                strength = 4096;
-            } else {
-                switch (keyStrength) {
-                    case "2048":
-                        strength = 2048;
-                        break;
-                    case "3072":
-                        strength = 3096;
-                        break;
-                    default:
-                        strength = 4096;
-                        break;
-                }
+            string ServerKeyStrength = ConfigurationManager.AppSettings.Get("ServerKeyStrength");
+            int keyStrength = 0;
+            switch (ServerKeyStrength)
+            {
+                case "2048":
+                    keyStrength = 2048;
+                    break;
+                case "3072":
+                    keyStrength = 3096;
+                    break;
+                default:
+                    keyStrength = 4096;
+                    break;
             }
-
-            
-
-            kpg.Init(new RsaKeyGenerationParameters(BigInteger.ValueOf(0x10001), new SecureRandom(), 3072, 25));
+            kpg.Init(new RsaKeyGenerationParameters(BigInteger.ValueOf(0x10001), new SecureRandom(), keyStrength, 25));
 
             AsymmetricCipherKeyPair kp = kpg.GenerateKeyPair();
-            string ServerPassphrase = ConfigurationManager.AppSettings.Get("ServerPassphrase");
-            if () {
-            throw new 
-                    }
-
-            string certificateFileName = ConfigurationManager.AppSettings["privateKeyFile"];
-
-            string passphrase = "_$_12345_$_";
-            string privateKeyFilename = "priv"+".pgp";
-            string publicKeyFilename = "pub"+".pgp";
-
-            ExportKeyPair(privateKeyFilename, publicKeyFilename, kp.Public, kp.Private, "John Doe < john@doe.com >,Jane Doe < jane@doe.com >", passphrase.ToCharArray(), true);
-
+            KeyPair = kp;
+            ServerPassphrase = hashing.GetSaltString(36);
+            PrivateKeyFilename = Guid.NewGuid().ToString() + Guid.NewGuid().ToString() + fileExtension;
+            PublicKeyFilename = Guid.NewGuid().ToString() + Guid.NewGuid().ToString() + fileExtension;
+        
+            ExportKeyPair(PrivateKeyFilename, PublicKeyFilename, kp.Public, kp.Private, "Interrapidisimo S.A.<soporte@interrapidisimo.com>", ServerPassphrase.ToCharArray(), armored);
+            
+            ReadPGPKeys();
         }
 
+        private void ReadPGPKeys()
+        {
+            string ServerCertificatesPath = ConfigurationManager.AppSettings.Get("ServerCertificatesPath");
+            if (String.IsNullOrEmpty(ServerCertificatesPath))
+            {
+                throw new System.Exception("Ruta de certificados no encontrada en configuracion.");
+            }
+            string path = Path.Combine(ServerCertificatesPath,PrivateKeyFilename);
 
-        private static void ExportKeyPair(
+            if (!File.Exists(path)){
+                throw new FileNotFoundException("Archivo no encontrado.", PrivateKeyFilename);
+            }
+            while (IsFileInUse(path)) {
+               // Console.WriteLine("Sleep... ");
+                //Thread.Sleep(2000);
+            }
+            PrivateKey = File.ReadAllText(path);
+
+             path = Path.Combine(ServerCertificatesPath, PublicKeyFilename);
+            if (!File.Exists(path)){
+                throw new FileNotFoundException("Archivo no encontrado.", PublicKeyFilename);
+            }
+            PublicKey = File.ReadAllText(path);
+            
+        }
+
+        private bool IsFileInUse(string path)
+        {
+            FileInfo file = new FileInfo(path);
+            FileStream stream = null;
+
+            try
+            {
+                stream = file.Open(FileMode.Open, FileAccess.Read);
+            }
+            catch (IOException)
+            {
+                //the file is unavailable because it is:
+                //still being written to
+                //or being processed by another thread
+                //or does not exist (has already been processed)
+                return true;
+            }
+            finally
+            {
+                if (stream != null)
+                    stream.Close();
+            }
+
+            //file is not locked
+            return false;
+        }
+
+        private void ExportKeyPair(
         string privateKeyFileName,
         string publicKeyFileName,
         AsymmetricKeyParameter publicKey,
@@ -179,49 +235,68 @@ namespace Security.Framework.Cryptography.Crypto
         char[] passPhrase,
         bool armor)
         {
-
-            Stream secretOut = File.Create(privateKeyFileName);
-            Stream publicOut = File.Create(publicKeyFileName);
-
-            if (armor)
+            string ServerCertificatesPath = ConfigurationManager.AppSettings.Get("ServerCertificatesPath");
+            if (String.IsNullOrEmpty(ServerCertificatesPath))
             {
-                secretOut = new ArmoredOutputStream(secretOut);
+                throw new System.Exception("Ruta de certificados no encontrada en configuracion.");
+            }
+            string privateKeyPath = Path.Combine(ServerCertificatesPath, privateKeyFileName);
+            string publicKeyPath = Path.Combine(ServerCertificatesPath, publicKeyFileName);
+            Stream secretOut = null;
+            Stream publicOut = null;
+            try
+            {
+                secretOut = new FileStream(privateKeyPath, FileMode.Create, FileAccess.Write, FileShare.Read);
+                publicOut = new FileStream(publicKeyPath, FileMode.Create, FileAccess.Write, FileShare.Read);
+
+                if (armor)
+                {
+                    secretOut = new ArmoredOutputStream(secretOut);
+                }
+
+                PgpSecretKey secretKey = new PgpSecretKey(
+                    PgpSignature.DefaultCertification,
+                    PublicKeyAlgorithmTag.RsaGeneral,
+                    publicKey,
+                    privateKey,
+                    DateTime.UtcNow,
+                    identity,
+                    SymmetricKeyAlgorithmTag.Cast5,
+                    passPhrase,
+                    null,
+                    null,
+                    new SecureRandom()
+                    );
+
+                secretKey.Encode(secretOut);
+                
+                if (armor)
+                {
+                    secretOut.Close();
+                    publicOut = new ArmoredOutputStream(publicOut);
+                }
+
+                PgpPublicKey key = secretKey.PublicKey;
+
+                key.Encode(publicOut);
+
+                secretOut.Flush();
+                publicOut.Flush();
+            }
+            finally
+            {
+                if (secretOut != null)
+                {
+                    secretOut.Dispose();
+                    secretOut.Close();
+                }
+                if (publicOut != null)
+                {
+                    publicOut.Dispose();
+                    publicOut.Close();
+                }
             }
 
-            PgpSecretKey secretKey = new PgpSecretKey(
-                PgpSignature.DefaultCertification,
-                PublicKeyAlgorithmTag.RsaGeneral,
-                publicKey,
-                privateKey,
-                DateTime.UtcNow,
-                identity,
-                SymmetricKeyAlgorithmTag.Cast5,
-                passPhrase,
-                null,
-                null,
-                new SecureRandom()
-                );
-
-
-            secretKey.Encode(secretOut);
-
-            if (armor)
-            {
-                secretOut.Close();
-                publicOut = new ArmoredOutputStream(publicOut);
-            }
-
-            PgpPublicKey key = secretKey.PublicKey;
-
-            key.Encode(publicOut);
-
-            if (armor)
-            {
-                publicOut.Close();
-            }
-
-            secretOut.Close();
-            publicOut.Close();
         }
 
 
