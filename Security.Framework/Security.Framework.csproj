@@ -139,12 +139,22 @@
     <Compile Include="Exception\InvalidHostURI.cs" />
     <Compile Include="Exception\MalformedUrlSecurityException.cs" />
     <Compile Include="Exception\SecurityException.cs" />
+    <Compile Include="Filters\RequireHttpsAttribute.cs" />
+    <Compile Include="MessageHandlers\ApiKeyHandler.cs" />
+    <Compile Include="MessageHandlers\HeaderVerificationHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Properties\Messages.Designer.cs" />
+    <Compile Include="Properties\Messages.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Messages.resx</DependentUpon>
+    </Compile>
     <Compile Include="TokenManager\TokenManager.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Properties\Messages.resx" />
+    <EmbeddedResource Include="Properties\Messages.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Messages.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="ActionFilter\" />

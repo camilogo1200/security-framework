@@ -126,6 +126,14 @@
   <data name="HasingEntrada" xml:space="preserve">
     <value>El hashing de origen no coincide con el del mensaje descifrado</value>
   </data>
+  <data name="Header_MACHINE_AUTHENTICATION" xml:space="preserve">
+    <value>machine-signature</value>
+    <comment>Header que contiene la firma de la maquina en BD</comment>
+  </data>
+  <data name="Header_X_APP_SIGNATURE" xml:space="preserve">
+    <value>x-app-signature</value>
+    <comment>Header que contiene el valor de API Key</comment>
+  </data>
   <data name="InvalidArgumentException" xml:space="preserve">
     <value>Valores invalidos </value>
   </data>

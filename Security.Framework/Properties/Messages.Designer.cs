@@ -88,6 +88,24 @@ namespace Security.Framework.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to machine-signature.
+        /// </summary>
+        internal static string Header_MACHINE_AUTHENTICATION {
+            get {
+                return ResourceManager.GetString("Header_MACHINE_AUTHENTICATION", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to x-app-signature.
+        /// </summary>
+        internal static string Header_X_APP_SIGNATURE {
+            get {
+                return ResourceManager.GetString("Header_X_APP_SIGNATURE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Valores invalidos .
         /// </summary>
         internal static string InvalidArgumentException {

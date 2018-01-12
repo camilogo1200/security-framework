@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Org.BouncyCastle.Bcpg.OpenPgp;
 using Security.Framework.Cryptography.AES;
 using Security.Framework.Cryptography.Crypto;
+using Security.Framework.Cryptography.Files;
 
 namespace Security.Framework.Tester
 {
@@ -18,12 +22,14 @@ namespace Security.Framework.Tester
         }
 
        public void create() {
-            CryptographyPGP crypto = new CryptographyPGP();
-            crypto.GeneratePGPCertificates();
-            Console.WriteLine("Private Key : " + crypto.PrivateKeyFilename);
-            Console.WriteLine("Public Key : " + crypto.PublicKeyFilename);
-            Console.WriteLine("Passphrase Key : " + crypto.ServerPassphrase);
-            Console.WriteLine("Public Key : " + crypto.PublicKey);
+            FileUtilities fileUtils = new FileUtilities();
+            string ServerCertificatesPath = ConfigurationManager.AppSettings.Get("ServerCertificatesPath");
+            string publicKey = ConfigurationManager.AppSettings.Get("PublicKeyCertificate");
+            string fullPath = Path.Combine(ServerCertificatesPath, publicKey);
+            PgpPublicKey PublicKeyPGP = fileUtils.ReadPublicKey(fullPath);
+
+            
+ 
         }
     }
 }
