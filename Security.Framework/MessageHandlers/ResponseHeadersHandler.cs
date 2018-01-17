@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using Security.Framework.Cryptography.Hashing;
 using Security.Framework.Cryptography.Interfaces;
 
@@ -17,7 +18,17 @@ namespace Security.Framework.MessageHandlers
         {
             var response = await base.SendAsync(request, cancellationToken);
             AddBodySignatureHeaders(response);
+            setCacheExpirationTime(response);
             return response;
+        }
+
+        private void setCacheExpirationTime(HttpResponseMessage response)
+        {
+            response.Headers.CacheControl.NoStore = true;
+            response.Headers.CacheControl.NoCache = true;
+
+            HttpContext.Current.Response.Cache.SetCacheability(HttpCacheability.Public);
+            HttpContext.Current.Response.Cache.SetExpires(DateTime.Now.AddMinutes(15));
         }
 
         private void AddBodySignatureHeaders(HttpResponseMessage response)
