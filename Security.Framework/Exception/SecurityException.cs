@@ -9,7 +9,7 @@ namespace Security.Framework.Exception
     [Serializable()]
     public class SecurityException : System.Exception
     {
-        public SecurityException() : base()
+        public SecurityException()
         {
         }
 

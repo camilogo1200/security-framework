@@ -25,6 +25,7 @@ namespace Security.Framework.Cryptography.Files
         private readonly IHashing hashing = new Hashing.Hashing();
 
         #region Generate PGP KeyPair
+
         public void GeneratePGPCertificates()
         {
             IAsymmetricCipherKeyPairGenerator kpg = GeneratorUtilities.GetKeyPairGenerator("RSA");
@@ -39,9 +40,11 @@ namespace Security.Framework.Cryptography.Files
                 case "2048":
                     keyStrength = 2048;
                     break;
+
                 case "3072":
                     keyStrength = 3096;
                     break;
+
                 default:
                     keyStrength = 4096;
                     break;
@@ -55,10 +58,10 @@ namespace Security.Framework.Cryptography.Files
 
             ExportKeyPair(PrivateKeyFilename, PublicKeyFilename, kp.Public, kp.Private, "Interrapidisimo S.A.<soporte@interrapidisimo.com>", ServerPassphrase.ToCharArray(), armored);
         }
-        #endregion
+
+        #endregion Generate PGP KeyPair
 
         #region Export Keys
-
 
         private void ExportKeyPair(
         string privateKeyFileName,
@@ -130,9 +133,9 @@ namespace Security.Framework.Cryptography.Files
                     publicOut.Close();
                 }
             }
-
         }
-        #endregion
+
+        #endregion Export Keys
 
         public string readArmoredPGPKey(string fullPathKey)
         {
@@ -174,6 +177,7 @@ namespace Security.Framework.Cryptography.Files
         /**
 		 * decrypt the passed in message stream
 		 */
+
         private void DecryptFile(
             Stream inputStream,
             Stream keyIn,
@@ -255,8 +259,6 @@ namespace Security.Framework.Cryptography.Files
                 }
                 else if (message is PgpOnePassSignatureList)
                 {
-
-
                     throw new PgpException("encrypted message contains a signed message - not literal data.");
                 }
                 else
@@ -296,12 +298,13 @@ namespace Security.Framework.Cryptography.Files
         /**
      * A simple routine that opens a key ring file and loads the first available key
      * suitable for encryption.
-     * 
+     *
      * @param input
      * @return
      * @throws IOException
      * @throws PGPException
      */
+
         public PgpPublicKey ReadPublicKey(Stream input)
         {
             PgpPublicKeyRingBundle pgpPub = new PgpPublicKeyRingBundle(
@@ -371,7 +374,7 @@ namespace Security.Framework.Cryptography.Files
         /**
 		 * Search a secret key ring collection for a secret key corresponding to keyID if it
 		 * exists.
-		 * 
+		 *
 		 * @param pgpSec a secret key ring collection.
 		 * @param keyID keyID we want.
 		 * @param pass passphrase to decrypt secret key with.
@@ -379,6 +382,7 @@ namespace Security.Framework.Cryptography.Files
 		 * @throws PGPException
 		 * @throws NoSuchProviderException
 		 */
+
         public PgpPrivateKey FindSecretKey(PgpSecretKeyRingBundle pgpSec, long keyID, char[] pass)
         {
             PgpSecretKey pgpSecKey = pgpSec.GetSecretKey(keyID);
@@ -398,9 +402,6 @@ namespace Security.Framework.Cryptography.Files
                 return ReadPublicKey(keyIn);
             }
         }
-
-
-
 
         public bool IsFileInUse(string path)
         {
@@ -518,6 +519,6 @@ namespace Security.Framework.Cryptography.Files
             }
         }
 
-        #endregion
+        #endregion Old utilities
     }
 }

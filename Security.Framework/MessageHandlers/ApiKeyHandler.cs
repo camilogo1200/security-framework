@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -35,16 +34,20 @@ namespace Security.Framework.MessageHandlers
 
         private bool ValidateKey(HttpRequestMessage message)
         {
-            if (!message.Headers.Contains("x-app-signature"))
+            string appSignature = Properties.Messages.Header_X_APP_SIGNATURE.ToString();
+
+            if (String.IsNullOrEmpty(appSignature))
+            {
+                throw new ObjectNotFoundException("Propiedad Header_X_APP_SIGNATURE no encontrada en archivo de propiedades (.resx)");
+            }
+            if (!message.Headers.Contains(appSignature))
             {
                 return false;
             }
-            IEnumerator<string> enumeratorHeader = message.Headers.GetValues("x-app-signature").GetEnumerator();
+            IEnumerator<string> enumeratorHeader = message.Headers.GetValues(appSignature).GetEnumerator();
             enumeratorHeader.MoveNext();
             string header = enumeratorHeader.Current;
             return (header == Key);
-            return false;
         }
     }
 }
-

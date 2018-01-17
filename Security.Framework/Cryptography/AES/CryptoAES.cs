@@ -43,6 +43,7 @@ namespace Security.Framework.Cryptography.AES
 
             return result;
         }
+
         public string EncryptDecrypt(String strToProcess, string passphrase, CryptographicProcess process)
         {
             bool isEncrypt = (process.ToString().Equals("Encrypt")) ? true : false;
@@ -60,9 +61,6 @@ namespace Security.Framework.Cryptography.AES
 
             return result;
         }
-
-
-
 
         /// <summary>
         /// Get key of the encryption

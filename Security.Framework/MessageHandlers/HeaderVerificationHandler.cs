@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
@@ -8,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Security.Framework.MessageHandlers
 {
-    public class SignaturesMessageHandler : DelegatingHandler
+    public class HeaderVerificationHandler : DelegatingHandler
     {
         protected async override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
@@ -39,7 +41,23 @@ namespace Security.Framework.MessageHandlers
             ICollection<string> lHeaderList = new List<string>();
 
             string appSignature = Properties.Messages.Header_X_APP_SIGNATURE.ToString();
+
+            if (String.IsNullOrEmpty(appSignature))
+            {
+                throw new ObjectNotFoundException("Propiedad Header_X_APP_SIGNATURE no encontrada en archivo de propiedades (.resx)");
+            }
+
             string machineSignature = Properties.Messages.Header_MACHINE_AUTHENTICATION.ToString();
+            if (String.IsNullOrEmpty(machineSignature))
+            {
+                throw new ObjectNotFoundException("Propiedad Header_MACHINE_AUTHENTICATION no encontrada en archivo de propiedades (.resx)");
+            }
+
+            string contentSha3Header = Properties.Messages.Header_CONTENT_SHA3.ToString();
+            if (String.IsNullOrEmpty(contentSha3Header))
+            {
+                throw new ObjectNotFoundException("Propiedad Header_CONTENT_SHA3 no encontrada en archivo de propiedades (.resx)");
+            }
 
             lHeaderList.Add(appSignature);
             lHeaderList.Add(machineSignature);
@@ -54,7 +72,7 @@ namespace Security.Framework.MessageHandlers
 
             if ((method.Equals(HttpMethod.Post)
                             || method.Equals(HttpMethod.Put)
-                            || method.Equals(HttpMethod.Delete)) && !headers.Contains("Content-SHA3"))
+                            || method.Equals(HttpMethod.Delete)) && !headers.Contains(contentSha3Header))
             {
                 return false;
             }

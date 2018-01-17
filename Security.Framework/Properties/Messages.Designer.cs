@@ -88,6 +88,15 @@ namespace Security.Framework.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Content-SHA3.
+        /// </summary>
+        internal static string Header_CONTENT_SHA3 {
+            get {
+                return ResourceManager.GetString("Header_CONTENT_SHA3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to machine-signature.
         /// </summary>
         internal static string Header_MACHINE_AUTHENTICATION {
@@ -120,6 +129,15 @@ namespace Security.Framework.Properties {
         internal static string MensajeEntrada {
             get {
                 return ResourceManager.GetString("MensajeEntrada", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to HTTPS Required.
+        /// </summary>
+        internal static string MSG_HTTP_REQUIRED {
+            get {
+                return ResourceManager.GetString("MSG_HTTP_REQUIRED", resourceCulture);
             }
         }
         

@@ -19,7 +19,7 @@ namespace Security.Framework.Communication
         /// URL template de envío al servidor sin HTTP:// o HTTPS://
         /// <example>(localhost/controlador/{id}/)</example>
         /// </summary>
-        private string rawURL = null;
+        private string rawURL;
 
         public string HostURL
         {

@@ -140,6 +140,10 @@
   <data name="MensajeEntrada" xml:space="preserve">
     <value>No se puede leer el mensaje de entrada.</value>
   </data>
+  <data name="MSG_HTTP_REQUIRED" xml:space="preserve">
+    <value>HTTPS Required</value>
+    <comment>Mensaje que retorna el api cuando se realiza la peticion sobre HTTP</comment>
+  </data>
   <data name="NoAutorizado" xml:space="preserve">
     <value>No se encuentra autorizado para acceder a la informacion : </value>
   </data>
@@ -169,5 +173,9 @@
   </data>
   <data name="SourceName" xml:space="preserve">
     <value>Security.Framework</value>
+  </data>
+  <data name="Header_CONTENT_SHA3" xml:space="preserve">
+    <value>Content-SHA3</value>
+    <comment>Header que contiene la firma del contenido SHA3 (sin cifrar)</comment>
   </data>
 </root>

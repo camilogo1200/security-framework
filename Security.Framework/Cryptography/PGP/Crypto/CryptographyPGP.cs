@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Configuration;
 using System.IO;
-using System.Security.Cryptography;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using Cache.Factory.Util;
 using Newtonsoft.Json;
 using Org.BouncyCastle.Bcpg;
@@ -12,8 +9,6 @@ using Org.BouncyCastle.Bcpg.OpenPgp;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Encodings;
 using Org.BouncyCastle.Crypto.Engines;
-using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Math;
 using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.IO;
@@ -30,7 +25,6 @@ namespace Security.Framework.Cryptography.Crypto
     /// </summary>
     public class CryptographyPGP : ICryptoPGP
     {
-
         private static readonly IHashing hashing = new Hashing.Hashing();
         public string PrivateKeyFilename { get; set; }
         public string PublicKeyFilename { get; set; }
@@ -40,14 +34,7 @@ namespace Security.Framework.Cryptography.Crypto
         public string PublicKey { get; set; }
         public string PrivateKey { get; set; }
 
-
-        PgpSecretKey SecretKey { get; set; }
-
-        public CryptographyPGP()
-        {
-            // GeneratePGPCertificates();
-        }
-
+        private PgpSecretKey SecretKey { get; set; }
 
         /// <summary>
         /// Encrypt message (PGP)
@@ -139,8 +126,6 @@ namespace Security.Framework.Cryptography.Crypto
             return hashing.getHashingStr(value, Hashing.DigestAlgorithm.SHA_512);
         }
 
-
-
         public void ReadPGPKeys()
         {
             string ServerCertificatesPath = ConfigurationManager.AppSettings.Get("ServerCertificatesPath");
@@ -148,27 +133,24 @@ namespace Security.Framework.Cryptography.Crypto
             {
                 throw new System.Exception("Ruta de certificados no encontrada en configuracion.");
             }
-            string path = Path.Combine(ServerCertificatesPath,PrivateKeyFilename);
+            string path = Path.Combine(ServerCertificatesPath, PrivateKeyFilename);
 
-            if (!File.Exists(path)){
+            if (!File.Exists(path))
+            {
                 throw new FileNotFoundException("Archivo no encontrado.", PrivateKeyFilename);
             }
 
             PrivateKey = File.ReadAllText(path);
 
-             path = Path.Combine(ServerCertificatesPath, PublicKeyFilename);
-            if (!File.Exists(path)){
+            path = Path.Combine(ServerCertificatesPath, PublicKeyFilename);
+            if (!File.Exists(path))
+            {
                 throw new FileNotFoundException("Archivo no encontrado.", PublicKeyFilename);
             }
             PublicKey = File.ReadAllText(path);
-            
         }
 
-
-
-
-
-        #region Obsolete  GPG llamado a consola 
+        #region Obsolete  GPG llamado a consola
 
         [Obsolete("Utiliza llamado a consola, no escalable")]
         public static string EncryptFile(string rawEncrypted, string fingerprint)
@@ -282,8 +264,6 @@ namespace Security.Framework.Cryptography.Crypto
             return resultLines;
         }
 
-
-        #endregion
-
+        #endregion Obsolete  GPG llamado a consola
     }
 }

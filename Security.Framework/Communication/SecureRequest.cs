@@ -12,9 +12,9 @@ namespace Security.Framework.Communication
     /// </summary>
     public class SecureRequest : ISecureRequestHandling
     {
-        private readonly  Hashing hash = new Hashing();
+        private readonly Hashing hash = new Hashing();
         private readonly CryptographyPGP crypto = new CryptographyPGP();
-        private string _encryptedBody = null;
+        private string _encryptedBody;
 
         /// <summary>
         /// Parametros que se cifrarán y enviaran en la URL final al servidor

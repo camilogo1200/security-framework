@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Data;
 using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
 using System.Web.Http.Controllers;
 using System.Web.Http.Filters;
 
@@ -15,9 +12,14 @@ namespace Security.Framework.Filters
         {
             if (actionContext.Request.RequestUri.Scheme != Uri.UriSchemeHttps)
             {
+                string msgRequiredHttps = Properties.Messages.MSG_HTTP_REQUIRED.ToString();
+                if (String.IsNullOrEmpty(msgRequiredHttps))
+                {
+                    throw new ObjectNotFoundException("Propiedad MSG_HTTP_REQUIRED no encontrada en archivo de propiedades (.resx)");
+                }
                 actionContext.Response = new HttpResponseMessage(System.Net.HttpStatusCode.Forbidden)
                 {
-                    ReasonPhrase = "HTTPS Required"
+                    ReasonPhrase = msgRequiredHttps
                 };
             }
             else
