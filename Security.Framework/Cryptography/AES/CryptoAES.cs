@@ -1,12 +1,12 @@
-﻿using System;
-using System.Security.Cryptography;
-using System.Text;
-using Org.BouncyCastle.Crypto;
+﻿using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Security.Framework.Cryptography.Files;
 using Security.Framework.Cryptography.Interfaces;
+using System;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Security.Framework.Cryptography.AES
 {
@@ -23,7 +23,7 @@ namespace Security.Framework.Cryptography.AES
         /// <param name="strToProcess"></param>
         /// <param name="isEncrypt"></param>
         /// <returns></returns>
-        public String EncryptDecrypt(String strToProcess, CryptographicProcess process)
+        public string EncryptDecrypt(string strToProcess, CryptographicProcess process)
         {
             bool isEncrypt = (process.ToString().Equals("Encrypt")) ? true : false;
 
@@ -44,7 +44,7 @@ namespace Security.Framework.Cryptography.AES
             return result;
         }
 
-        public string EncryptDecrypt(String strToProcess, string passphrase, CryptographicProcess process)
+        public string EncryptDecrypt(string strToProcess, string passphrase, CryptographicProcess process)
         {
             bool isEncrypt = (process.ToString().Equals("Encrypt")) ? true : false;
             strToProcess = strToProcess.Trim();
@@ -76,6 +76,42 @@ namespace Security.Framework.Cryptography.AES
             keyBytes = sha1.ComputeHash(keyBytes);
             keyBytes = Arrays.CopyOf(keyBytes, 32); // 256 bits
             return keyBytes;
+        }
+
+        /// <summary>
+        /// Encrypt or Decrypt message using AES. With public server key
+        /// </summary>
+        /// <param name="strToProcess"></param>
+        /// <param name="isEncrypt"></param>
+        /// <returns></returns>
+        public string EncryptDecryptCBCPK7(string strToProcess, CryptographicProcess process)
+        {
+            strToProcess = strToProcess.Replace("\"", "");
+            if (string.IsNullOrEmpty(strToProcess))
+            {
+                throw new System.Exception("Invalid AES Input Text");
+            }
+            bool isEncrypt = (process.Equals(CryptographicProcess.Encrypt)) ? true : false;
+
+            strToProcess = strToProcess.Trim();
+
+            // Debe traer llave de seguridad
+            var keyBytes = Encoding.UTF8.GetBytes("7061737323313233");
+
+            var iv = keyBytes;
+            IBufferedCipher cipher = CipherUtilities.GetCipher("AES/CBC/PKCS7Padding");
+            cipher.Init(isEncrypt, new ParametersWithIV(ParameterUtilities.CreateKeyParameter("AES", keyBytes), iv));
+
+            byte[] inputText = isEncrypt ? ASCIIEncoding.UTF8.GetBytes(strToProcess) : Convert.FromBase64String(strToProcess);
+            if (inputText == null || inputText.Length == 0)
+            {
+                throw new System.Exception("Invalid Input Byte Array");
+            }
+            byte[] dec = cipher.DoFinal(inputText);
+
+            string result = isEncrypt ? Convert.ToBase64String(dec) : Encoding.UTF8.GetString(dec);
+
+            return result;
         }
     }
 }

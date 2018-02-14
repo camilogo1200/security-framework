@@ -1,19 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Security.Framework.Cryptography.Hashing;
+using Security.Framework.Cryptography.Interfaces;
+using System;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
-using Security.Framework.Cryptography.Hashing;
-using Security.Framework.Cryptography.Interfaces;
 
 namespace Security.Framework.MessageHandlers
 {
     public class ResponseHeadersHandler : DelegatingHandler
     {
         private readonly IHashing hashing = new Hashing();
+
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             var response = await base.SendAsync(request, cancellationToken);
@@ -24,8 +22,11 @@ namespace Security.Framework.MessageHandlers
 
         private void setCacheExpirationTime(HttpResponseMessage response)
         {
-            response.Headers.CacheControl.NoStore = true;
-            response.Headers.CacheControl.NoCache = true;
+            if (response.Headers.CacheControl != null)
+            {
+                response.Headers.CacheControl.NoStore = true;
+                response.Headers.CacheControl.NoCache = true;
+            }
 
             HttpContext.Current.Response.Cache.SetCacheability(HttpCacheability.Public);
             HttpContext.Current.Response.Cache.SetExpires(DateTime.Now.AddMinutes(15));

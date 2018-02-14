@@ -1,4 +1,8 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Security.Framework.Cryptography.AES;
+using Security.Framework.Cryptography.Crypto;
+using Security.Framework.Exception;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,16 +13,11 @@ using System.Resources;
 using System.Web.Http;
 using System.Web.Http.Controllers;
 using System.Web.Http.Filters;
-using Newtonsoft.Json;
-using Security.Framework.Cryptography.AES;
-using Security.Framework.Cryptography.Crypto;
-using Security.Framework.Exception;
 
 namespace Security.Framework.Cryptography.Filters
 {
     public class APIAuthenticationFilterAttribute : ActionFilterAttribute
     {
-        private readonly CryptographyPGP cryptoPGP = new CryptographyPGP();
 
         public override void OnActionExecuting(HttpActionContext filterContext)
         {

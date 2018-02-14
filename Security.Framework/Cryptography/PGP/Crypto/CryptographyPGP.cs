@@ -1,8 +1,4 @@
-﻿using System;
-using System.Configuration;
-using System.IO;
-using System.Text;
-using Cache.Factory.Util;
+﻿using Cache.Factory.Util;
 using Newtonsoft.Json;
 using Org.BouncyCastle.Bcpg;
 using Org.BouncyCastle.Bcpg.OpenPgp;
@@ -16,6 +12,11 @@ using Security.Framework.Cryptography.Files;
 using Security.Framework.Cryptography.Interfaces;
 using Security.Framework.Exception;
 using Security.Framework.Properties;
+using System;
+using System.Configuration;
+using System.IO;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Security.Framework.Cryptography.Crypto
 {
@@ -35,6 +36,126 @@ namespace Security.Framework.Cryptography.Crypto
         public string PrivateKey { get; set; }
 
         private PgpSecretKey SecretKey { get; set; }
+
+        private string _certificateClientRequest = null;
+
+        private string folderPath = String.Empty;
+        private string certificateFileName = String.Empty;
+        private string Fullpath = String.Empty;
+        private string passPrivateKey = String.Empty;
+        private char[] pass = null;
+
+
+
+        #region Singleton 
+        /// <summary>         /// Atributo utilizado para evitar problemas con multithreading en el singleton.         /// </summary>         private readonly static object syncRoot = new Object();          private static volatile CryptographyPGP instance;
+
+        public static CryptographyPGP Instance         {             get             {                 if (instance == null)                 {                     lock (syncRoot)                     {                         if (instance == null)                         {                             instance = new CryptographyPGP();                         }                     }                 }                 return instance;             }         }          private CryptographyPGP()         {          }
+
+        #endregion Singleton
+
+
+
+        /// <summary>
+        /// Certificado del cliente
+        /// </summary>
+        public string CertificateClientRequest
+        {
+            get
+            {
+                if (_certificateClientRequest != null)
+                {
+                    _certificateClientRequest = replaceBreakAndQuotationMarks(_certificateClientRequest);
+                }
+                return _certificateClientRequest;
+            }
+            set // set method for storing value in name field.
+            {
+                _certificateClientRequest = value;
+            }
+        }
+
+        /// <summary>
+        /// Cifrar de C# a JS
+        /// </summary>
+        /// <param name="rawResponse"></param>
+        /// <returns></returns>
+        public byte[] Encrypt(string rawResponse, string clientPGPCertificate)
+        {
+            // convierte string en byte[]
+            byte[] clearData = Encoding.ASCII.GetBytes(rawResponse);
+            MemoryStream outputStream;
+            // llave publica
+            byte[] byteArrayCertificate = Encoding.UTF8.GetBytes(clientPGPCertificate);
+
+            //if (String.IsNullOrEmpty(CertificateClientRequest))
+            //{
+            //    CertificateClientRequest = CertificateClientRequest;
+            //}
+
+            using (Stream publicKeyStream = new MemoryStream(byteArrayCertificate))
+            {
+                // obtiene la llave publica
+                PgpPublicKey pubKey = ReadPublicKey(publicKeyStream);
+
+                using (MemoryStream outputBytes = new MemoryStream())
+                {
+                    // comprime los datos entrantes
+                    PgpCompressedDataGenerator dataCompressor = new PgpCompressedDataGenerator(CompressionAlgorithmTag.Zip);
+                    Stream os = dataCompressor.Open(outputBytes);
+                    PgpLiteralDataGenerator lData = new PgpLiteralDataGenerator();
+
+                    Stream pOut = lData.Open(
+                    os,
+                    PgpLiteralData.Binary,
+                    "DataPGP",
+                    clearData.Length,
+                    DateTime.UtcNow
+                    );
+                    pOut.Write(clearData, 0, clearData.Length);
+                    pOut.Close();
+                    dataCompressor.Close();
+
+                    PgpEncryptedDataGenerator dataGenerator = new PgpEncryptedDataGenerator(SymmetricKeyAlgorithmTag.Cast5, false, new SecureRandom());
+                    dataGenerator.AddMethod(pubKey);
+                    // resultante de comprimir
+                    byte[] dataBytes = outputBytes.ToArray();
+
+                    using (outputStream = new MemoryStream())
+                    {
+                        // se arma el cuerpo del mensaje cifrado con encabezado
+                        using (ArmoredOutputStream armoredStream = new ArmoredOutputStream(outputStream))
+                        {
+                            using (Stream outStream = dataGenerator.Open(armoredStream, dataBytes.Length))
+                            {
+                                outStream.Write(dataBytes, 0, dataBytes.Length);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return outputStream.ToArray();
+        }
+
+        private static PgpPublicKey ReadPublicKey(Stream inputStream)
+        {
+            inputStream = PgpUtilities.GetDecoderStream(inputStream);
+            PgpPublicKeyRingBundle pgpPub = new PgpPublicKeyRingBundle(inputStream);
+
+            foreach (PgpPublicKeyRing keyRing in pgpPub.GetKeyRings())
+            {
+                foreach (PgpPublicKey key in keyRing.GetPublicKeys())
+                {
+                    if (key.IsEncryptionKey)
+                    {
+                        return key;
+                    }
+                }
+            }
+
+            throw new ArgumentException("Can't find encryption key in key ring.");
+        }
 
         /// <summary>
         /// Encrypt message (PGP)
@@ -121,6 +242,147 @@ namespace Security.Framework.Cryptography.Crypto
             return Encoding.UTF8.GetString(block);
         }
 
+        /// <summary>
+        /// Descifrar de JS a C#
+        /// </summary>
+        /// <param name="inputStream"></param>
+        /// <returns></returns>
+
+        public string Decrypt(Stream inputStream)
+        {
+            // certificados
+            folderPath = ConfigurationManager.AppSettings["ServerCertificatesPath"];
+            certificateFileName = ConfigurationManager.AppSettings["PrivateKeyFile"];
+            passPrivateKey = ConfigurationManager.AppSettings["PassphrasePrivateKey"];
+            Fullpath = Path.Combine(folderPath, certificateFileName);
+            pass = passPrivateKey.ToCharArray();
+
+            inputStream = PgpUtilities.GetDecoderStream(inputStream);
+
+            string result = String.Empty;
+
+            try
+            {
+                PgpObjectFactory pgpF = new PgpObjectFactory(inputStream);
+                PgpEncryptedDataList enc;
+                PgpObject o = pgpF.NextPgpObject();
+
+                if (o is PgpEncryptedDataList)
+                {
+                    enc = (PgpEncryptedDataList)o;
+                }
+                else
+                {
+                    enc = (PgpEncryptedDataList)pgpF.NextPgpObject();
+                }
+
+                using (Stream inputStreamCertificate = File.Open(Fullpath, FileMode.Open))
+                {
+                    //////////////////////////////
+                    PgpPrivateKey sKey = null;
+                    PgpPublicKeyEncryptedData pbe = null;
+                    PgpSecretKeyRingBundle pgpSec = new PgpSecretKeyRingBundle(
+                        PgpUtilities.GetDecoderStream(inputStreamCertificate));
+
+                    foreach (PgpPublicKeyEncryptedData pked in enc.GetEncryptedDataObjects())
+                    {
+                        sKey = FindSecretKey(pgpSec, pked.KeyId, pass);
+
+                        if (sKey != null)
+                        {
+                            pbe = pked;
+                            break;
+                        }
+                    }
+
+                    if (sKey == null)
+                    {
+                        throw new ArgumentException("secret key for message not found.");
+                    }
+
+                    PgpObjectFactory plainFact = null;
+                    using (Stream clear = pbe.GetDataStream(sKey))
+                    {
+                        plainFact = new PgpObjectFactory(clear);
+                    }
+
+                    PgpObject message = plainFact.NextPgpObject();
+
+                    if (message is PgpCompressedData)
+                    {
+                        PgpCompressedData cData = (PgpCompressedData)message;
+                        PgpObjectFactory pgpFact = new PgpObjectFactory(cData.GetDataStream());
+                        message = pgpFact.NextPgpObject();
+                    }
+
+                    if (message is PgpLiteralData)
+                    {
+                        PgpLiteralData ld = (PgpLiteralData)message;
+                        Stream clearStream = ld.GetInputStream();
+                        byte[] bytes = Streams.ReadAll(clearStream);
+                        result = Encoding.UTF8.GetString(bytes);
+
+                        clearStream.Close();
+                    }
+                    else if (message is PgpOnePassSignatureList)
+                    {
+                        throw new PgpException("encrypted message contains a signed message - not literal data.");
+                    }
+                    else
+                    {
+                        throw new PgpException("message is not a simple encrypted file - type unknown.");
+                    }
+                }
+            }
+            catch (PgpException e)
+            {
+                Console.Error.WriteLine(e);
+
+                System.Exception underlyingException = e.InnerException;
+                if (underlyingException != null)
+                {
+                    Console.Error.WriteLine(underlyingException.Message);
+                    Console.Error.WriteLine(underlyingException.StackTrace);
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Encuentra la llave secreta
+        /// </summary>
+        /// <param name="pgpSec"></param>
+        /// <param name="keyID"></param>
+        /// <param name="pass"></param>
+        /// <returns></returns>
+        internal static PgpPrivateKey FindSecretKey(PgpSecretKeyRingBundle pgpSec, long keyID, char[] pass)
+        {
+            PgpSecretKey pgpSecKey = pgpSec.GetSecretKey(keyID);
+
+            if (pgpSecKey == null)
+            {
+                return null;
+            }
+
+            return pgpSecKey.ExtractPrivateKey(pass);
+        }
+
+        /// <summary>
+        /// Reemplaza comillas y saltos de linea
+        /// </summary>
+        /// <param name="rawRequest"></param>
+        /// <returns></returns>
+        public string replaceBreakAndQuotationMarks(string rawRequest)
+        {
+            string clearText = String.Empty;
+            // Elimina espacios, reemplaza saltos de linea y comillas
+            clearText = Regex.Replace(rawRequest, @"\\r\\n?|\\n", Environment.NewLine);
+            clearText = clearText.Replace("\"", "");
+
+            return clearText;
+        }
+
         public string GenerateHash512(string value)
         {
             return hashing.getHashingStr(value, Hashing.DigestAlgorithm.SHA_512);
@@ -149,6 +411,36 @@ namespace Security.Framework.Cryptography.Crypto
             }
             PublicKey = File.ReadAllText(path);
         }
+
+        /// <summary>
+        /// Elimina espacios, reemplaza saltos de linea y comillas en mensaje original
+        /// </summary>
+        /// <param name="messageOrigen"></param>
+        /// <returns></returns>
+        public Stream replaceBreaks(Stream messageOrigen)
+        {
+            string rawRequest = String.Empty;
+            MemoryStream streamDescifrar = null;
+            byte[] byteArray = null;
+            // obtiene el body del request y lo descifra
+            using (var stream = new StreamReader(messageOrigen))
+            {
+                stream.BaseStream.Position = 0;
+                rawRequest = stream.ReadToEnd();
+            }
+
+            if (!String.IsNullOrEmpty(rawRequest))
+            {
+                // Elimina espacios, reemplaza saltos de linea y comillas
+                rawRequest = replaceBreakAndQuotationMarks(rawRequest);
+
+                // convertir string to stream
+                byteArray = Encoding.UTF8.GetBytes(rawRequest);
+                streamDescifrar = new MemoryStream(byteArray);
+            }
+            return streamDescifrar;
+        }
+
 
         #region Obsolete  GPG llamado a consola
 

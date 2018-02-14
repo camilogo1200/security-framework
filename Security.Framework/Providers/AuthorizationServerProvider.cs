@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Microsoft.Owin;
+using Microsoft.Owin.Security.OAuth;
+using System;
 using System.Configuration;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Owin;
-using Microsoft.Owin.Security.OAuth;
 
 namespace Security.Framework.Providers
 {
@@ -29,9 +27,8 @@ namespace Security.Framework.Providers
             return base.MatchEndpoint(context);
         }
 
-
         /// <summary>
-        /// add the allow-origin header only if the origin domain is found on the     
+        /// add the allow-origin header only if the origin domain is found on the
         /// allowedOrigin list
         /// </summary>
         /// <param name="context"></param>
@@ -44,7 +41,6 @@ namespace Security.Framework.Providers
                 var list = allowedUrls.Split(',');
                 if (list.Length > 0)
                 {
-
                     string origin = context.Request.Headers.Get("Origin");
                     var found = list.Where(item => item == origin).Any();
                     if (found)
@@ -53,13 +49,11 @@ namespace Security.Framework.Providers
                                                      new string[] { origin });
                     }
                 }
-
             }
             context.Response.Headers.Add("Access-Control-Allow-Headers",
                                    new string[] { "Authorization", "Content-Type" });
             context.Response.Headers.Add("Access-Control-Allow-Methods",
                                    new string[] { "OPTIONS", "GET", "POST" });
-
         }
     }
 }

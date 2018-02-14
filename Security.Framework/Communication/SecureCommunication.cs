@@ -1,10 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using RestSharp;
+﻿using RestSharp;
 using Security.Framework.Communication.Interfaces;
 using Security.Framework.Cryptography.Crypto;
+using Security.Framework.Cryptography.Interfaces;
 using Security.Framework.Exception;
+using System;
+using System.Collections.Generic;
+using System.Configuration;
 
 namespace Security.Framework.Communication
 {
@@ -13,7 +14,7 @@ namespace Security.Framework.Communication
     /// </summary>
     public class SecureCommunication : ISecureCommunicationHandling
     {
-        private readonly CryptographyPGP crypto = new CryptographyPGP();
+        private readonly ICryptoPGP crypto = CryptographyPGP.Instance;
 
         /// <summary>
         /// URL template de envío al servidor sin HTTP:// o HTTPS://

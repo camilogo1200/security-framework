@@ -1,9 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using RestSharp;
+﻿using RestSharp;
 using Security.Framework.Communication.Interfaces;
 using Security.Framework.Cryptography.Crypto;
 using Security.Framework.Cryptography.Hashing;
+using Security.Framework.Cryptography.Interfaces;
+using System;
+using System.Collections.Generic;
 
 namespace Security.Framework.Communication
 {
@@ -13,7 +14,7 @@ namespace Security.Framework.Communication
     public class SecureRequest : ISecureRequestHandling
     {
         private readonly Hashing hash = new Hashing();
-        private readonly CryptographyPGP crypto = new CryptographyPGP();
+        private readonly ICryptoPGP crypto = CryptographyPGP.Instance;
         private string _encryptedBody;
 
         /// <summary>

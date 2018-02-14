@@ -1,9 +1,9 @@
-﻿using System;
-using System.Text;
-using Org.BouncyCastle.Crypto;
+﻿using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.Encoders;
 using Security.Framework.Cryptography.Interfaces;
+using System;
+using System.Text;
 
 namespace Security.Framework.Cryptography.Hashing
 {

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Configuration;
-using System.Diagnostics;
-using System.IO;
-using System.Text;
-using Cache.Factory.Util;
+﻿using Cache.Factory.Util;
 using Org.BouncyCastle.Bcpg;
 using Org.BouncyCastle.Bcpg.OpenPgp;
 using Org.BouncyCastle.Crypto;
@@ -14,6 +9,11 @@ using Org.BouncyCastle.Utilities.IO;
 using Security.Framework.Cryptography.Crypto;
 using Security.Framework.Cryptography.Interfaces;
 using Security.Framework.Exception;
+using System;
+using System.Configuration;
+using System.Diagnostics;
+using System.IO;
+using System.Text;
 
 namespace Security.Framework.Cryptography.Files
 {

@@ -1,5 +1,5 @@
-﻿using System;
-using Security.Framework.Cryptography.Hashing;
+﻿using Security.Framework.Cryptography.Hashing;
+using System;
 
 namespace Security.Framework.Cryptography.Interfaces
 {
