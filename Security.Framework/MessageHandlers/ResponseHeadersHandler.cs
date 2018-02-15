@@ -35,9 +35,12 @@ namespace Security.Framework.MessageHandlers
         private void AddBodySignatureHeaders(HttpResponseMessage response)
         {
             HttpContent requestContent = response.Content;
-            string jsonContent = requestContent.ReadAsStringAsync().Result;
-            string SHA3 = hashing.getHashingStr(jsonContent, DigestAlgorithm.SHA3_256);
-            response.Headers.Add("X-body-signature", SHA3);
+            if (response.Content != null)
+            {
+                string jsonContent = requestContent.ReadAsStringAsync().Result;
+                string SHA3 = hashing.getHashingStr(jsonContent, DigestAlgorithm.SHA3_256);
+                response.Headers.Add("X-body-signature", SHA3);
+            }
         }
     }
 }

@@ -35,6 +35,9 @@ namespace Security.Framework.MessageHandlers
 
         private bool ValidateRequestHeaders(HttpRequestMessage request)
         {
+            if (request.Method.Equals(HttpMethod.Options)) {
+                return true;
+            }
             HttpRequestHeaders headers = request.Headers;
             HttpMethod method = request.Method;
             //load Headers in request

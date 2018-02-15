@@ -22,7 +22,7 @@ namespace Security.Framework.MessageHandlers
             HttpRequestMessage request, CancellationToken cancellationToken)
         {
             Debug.WriteLine("[ApiKeyHandler]");
-            if (!ValidateKey(request))
+            if (!request.Method.Equals(HttpMethod.Options) && !ValidateKey(request))
             {
                 var response = new HttpResponseMessage(HttpStatusCode.Forbidden);
                 var tsc = new TaskCompletionSource<HttpResponseMessage>();
@@ -34,6 +34,8 @@ namespace Security.Framework.MessageHandlers
 
         private bool ValidateKey(HttpRequestMessage message)
         {
+            
+
             string appSignature = Properties.Messages.Header_X_APP_SIGNATURE.ToString();
 
             if (String.IsNullOrEmpty(appSignature))

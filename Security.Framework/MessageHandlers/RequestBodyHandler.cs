@@ -13,6 +13,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace Security.Framework.MessageHandlers
 {
@@ -23,28 +25,41 @@ namespace Security.Framework.MessageHandlers
         private string idTokenCliente;
         protected async override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            HttpContent content = request.Content;
-            this.idTokenCliente = request.Headers("machine-signature");
-
-
-            //TODO Header cache token y pgp sino llamar a seguridad
-            if (content != null && !request.Method.Equals(HttpMethod.Get))
+            if (!request.Method.Equals(HttpMethod.Options))
             {
-                DecryptPGPContent(request);
-            }
-            else
-            {
-                EncryptParamAES(request);
-            }
-            var response = await base.SendAsync(request, cancellationToken);
-
-            if (response.Content != null)
-            {
+                HttpContent content = request.Content;
                 if (request.RequestUri.AbsolutePath.Contains("auth") && !request.Method.Equals(HttpMethod.Get))
                 {
-                    EncryptPGPContent(response, RuntimeCache.GetItem(idTokenCliente).ToString());
+                    IList<string> lHeaders = request.Headers.GetValues("machine-signature").ToList();
+                    if (lHeaders == null || lHeaders.Count < 1)
+                    {
+                        throw new System.Exception("Machine signature not found");
+                    }
+                    this.idTokenCliente = lHeaders.ElementAt(0);
                 }
 
+
+                //TODO Header cache token y pgp sino llamar a seguridad
+                if (content != null && !request.Method.Equals(HttpMethod.Get))
+                {
+                    DecryptPGPContent(request);
+                }
+                else
+                {
+                    EncryptParamAES(request);
+                }
+            }
+            var response = await base.SendAsync(request, cancellationToken);
+            if (!request.Method.Equals(HttpMethod.Options))
+            {
+                if (response.Content != null)
+                {
+                    if (request.RequestUri.AbsolutePath.Contains("auth") && !request.Method.Equals(HttpMethod.Get))
+                    {
+                        EncryptPGPContent(response, RuntimeCache.GetItem(idTokenCliente).ToString());
+                    }
+
+                }
             }
             return response;
         }
@@ -55,11 +70,14 @@ namespace Security.Framework.MessageHandlers
             var baseUri = request.RequestUri.GetComponents(UriComponents.Scheme | UriComponents.Host | UriComponents.Port | UriComponents.Path, UriFormat.UriEscaped);
             var qs = HttpUtility.ParseQueryString(request.RequestUri.Query);
 
-            foreach (var parameter in request.GetQueryNameValuePairs())
+            if (request.GetQueryNameValuePairs().Count() > 0)
             {
-                qs.Set(parameter.Key, AES.EncryptDecryptCBCPK7(parameter.Value, CryptographicProcess.Decrypt));
+                foreach (var parameter in request.GetQueryNameValuePairs())
+                {
+                    qs.Set(parameter.Key, AES.EncryptDecryptCBCPK7(parameter.Value, CryptographicProcess.Decrypt));
+                }
+                request.RequestUri = new Uri(string.Format("{0}?{1}", baseUri, qs.ToString()));
             }
-            request.RequestUri = new Uri(string.Format("{0}?{1}", baseUri, qs.ToString()));
         }
 
         private void EncryptPGPContent(HttpResponseMessage response, string clientPGPCertificate)
