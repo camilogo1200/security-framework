@@ -96,7 +96,7 @@ namespace Security.Framework.Cryptography.AES
             strToProcess = strToProcess.Trim();
 
             // Debe traer llave de seguridad
-            var keyBytes = Encoding.UTF8.GetBytes("7061737323313233");
+            var keyBytes = Encoding.UTF8.GetBytes("1517415788292000");
 
             var iv = keyBytes;
             IBufferedCipher cipher = CipherUtilities.GetCipher("AES/CBC/PKCS7Padding");

@@ -88,6 +88,15 @@ namespace Security.Framework.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to bearer-token.
+        /// </summary>
+        internal static string Header_BEARERTOKEN {
+            get {
+                return ResourceManager.GetString("Header_BEARERTOKEN", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Content-SHA3.
         /// </summary>
         internal static string Header_CONTENT_SHA3 {
