@@ -72,9 +72,10 @@ namespace Security.Framework.MessageHandlers
 
             if (request.GetQueryNameValuePairs().Count() > 0)
             {
+                var passphrase = "";//TODO PASSPHRASE
                 foreach (var parameter in request.GetQueryNameValuePairs())
                 {
-                    qs.Set(parameter.Key, AES.EncryptDecryptCBCPK7(parameter.Value, CryptographicProcess.Decrypt));
+                    qs.Set(parameter.Key, AES.EncryptDecryptCBCPK7(parameter.Value, passphrase, CryptographicProcess.Decrypt));
                 }
                 request.RequestUri = new Uri(string.Format("{0}?{1}", baseUri, qs.ToString()));
             }
@@ -108,6 +109,14 @@ namespace Security.Framework.MessageHandlers
             // Elimina saltos de linea y comillas
             rawRequest = cryptography.replaceBreaks(request.Content.ReadAsStreamAsync().Result);
 
+            if (rawRequest == null)
+            {
+                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest)
+                {
+                    Content = new StringContent("Mensaje de entrada no valido")
+                });
+            }
+
             // resultado descifrado PGP
             result = cryptography.Decrypt(rawRequest);
             if (String.IsNullOrEmpty(result))
@@ -120,12 +129,17 @@ namespace Security.Framework.MessageHandlers
 
             // Serializa request para obtener el certificado publico del cliente
             JObject jObject = JObject.Parse(result);
-            if (request.RequestUri.AbsolutePath.Contains("auth") && !request.Method.Equals(HttpMethod.Get))
+            if (request.RequestUri.AbsolutePath.Contains("auth") &&
+                !request.Method.Equals(HttpMethod.Get) &&
+                !RuntimeCache.ExistItem(idTokenCliente)
+                )
             {
-                if (!RuntimeCache.ExistItem(idTokenCliente))
+                string clientPublicKey = (string)jObject.SelectToken("Machine.PgpPublicKey");
+                if (String.IsNullOrEmpty(clientPublicKey))
                 {
-                    RuntimeCache.AddItem(idTokenCliente, (string)jObject.SelectToken("Machine.PgpPublicKey"));
+                    throw new System.Exception("Certificado publico cliente no valido");
                 }
+                RuntimeCache.AddItem(idTokenCliente, clientPublicKey);
             }
             //TODO cache Machine.PgpPublicKey
 

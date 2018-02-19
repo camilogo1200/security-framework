@@ -17,6 +17,17 @@ namespace Security.Framework.Cryptography.AES
     /// </summary>
     public class CryptoAES : IAESCipher
     {
+
+
+
+        #region Singleton 
+        /// <summary>         /// Atributo utilizado para evitar problemas con multithreading en el singleton.         /// </summary>         private readonly static object syncRoot = new Object();          private static volatile CryptoAES instance;
+
+        public static CryptoAES Instance         {             get             {                 if (instance == null)                 {                     lock (syncRoot)                     {                         if (instance == null)                         {                             instance = new CryptoAES();                         }                     }                 }                 return instance;             }         }          //private CryptoAES()         //{          //}
+
+        #endregion Singleton
+
+
         /// <summary>
         /// Encrypt or Decrypt message using AES. With public server key
         /// </summary>
@@ -26,7 +37,6 @@ namespace Security.Framework.Cryptography.AES
         public string EncryptDecrypt(string strToProcess, CryptographicProcess process)
         {
             bool isEncrypt = (process.ToString().Equals("Encrypt")) ? true : false;
-
             FileUtilities util = new FileUtilities();
             strToProcess = strToProcess.Trim();
             string keyText = Encoding.UTF8.GetString(util.loadPublicKeyFromFile().GetPublicKey().GetEncoded());
@@ -50,9 +60,9 @@ namespace Security.Framework.Cryptography.AES
             strToProcess = strToProcess.Trim();
             byte[] keyBytes = getKeyBytesAES(passphrase);
             KeyParameter key = ParameterUtilities.CreateKeyParameter("AES", keyBytes);
-            IBufferedCipher cipher = CipherUtilities.GetCipher("AES/ECB/PKCS5PADDING");
-            cipher.Init(isEncrypt, key);
-
+            IBufferedCipher cipher = CipherUtilities.GetCipher("AES/CBC/PKCS5PADDING");
+            var iv = keyBytes;
+            cipher.Init(isEncrypt, new ParametersWithIV(ParameterUtilities.CreateKeyParameter("AES", keyBytes), iv));
             byte[] inputText = isEncrypt ? ASCIIEncoding.UTF8.GetBytes(strToProcess) : Convert.FromBase64String(strToProcess);
 
             byte[] dec = cipher.DoFinal(inputText);
@@ -84,7 +94,7 @@ namespace Security.Framework.Cryptography.AES
         /// <param name="strToProcess"></param>
         /// <param name="isEncrypt"></param>
         /// <returns></returns>
-        public string EncryptDecryptCBCPK7(string strToProcess, CryptographicProcess process)
+        public string EncryptDecryptCBCPK7(string strToProcess,string pass , CryptographicProcess process)
         {
             strToProcess = strToProcess.Replace("\"", "");
             if (string.IsNullOrEmpty(strToProcess))
