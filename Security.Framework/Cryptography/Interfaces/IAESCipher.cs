@@ -7,7 +7,6 @@ namespace Security.Framework.Cryptography.Interfaces
     {
         string EncryptDecrypt(string strToProcess, CryptographicProcess process);
         string EncryptDecrypt(string strToProcess, string passphrase, CryptographicProcess process);
-
-        string EncryptDecryptCBCPK7(string strToProcess, string passphrase, CryptographicProcess process);
+        String DecryptIt(String s, byte[] key, byte[] IV);
     }
 }

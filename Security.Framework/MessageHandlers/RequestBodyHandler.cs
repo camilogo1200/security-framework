@@ -36,6 +36,10 @@ namespace Security.Framework.MessageHandlers
                         throw new System.Exception("Machine signature not found");
                     }
                     this.idTokenCliente = lHeaders.ElementAt(0);
+                    if (RuntimeCache.ExistItem(this.idTokenCliente))
+                    {
+                        RuntimeCache.DeleteItem(this.idTokenCliente);
+                    }
                 }
 
 
@@ -54,7 +58,7 @@ namespace Security.Framework.MessageHandlers
             {
                 if (response.Content != null)
                 {
-                    if (request.RequestUri.AbsolutePath.Contains("auth") && !request.Method.Equals(HttpMethod.Get))
+                    if (!request.Method.Equals(HttpMethod.Get))
                     {
                         EncryptPGPContent(response, RuntimeCache.GetItem(idTokenCliente).ToString());
                     }
@@ -75,7 +79,7 @@ namespace Security.Framework.MessageHandlers
                 var passphrase = "";//TODO PASSPHRASE
                 foreach (var parameter in request.GetQueryNameValuePairs())
                 {
-                    qs.Set(parameter.Key, AES.EncryptDecryptCBCPK7(parameter.Value, passphrase, CryptographicProcess.Decrypt));
+                    //qs.Set(parameter.Key, AES.EncryptDecryptCBCPK7(parameter.Value, passphrase, CryptographicProcess.Decrypt));
                 }
                 request.RequestUri = new Uri(string.Format("{0}?{1}", baseUri, qs.ToString()));
             }
@@ -131,8 +135,7 @@ namespace Security.Framework.MessageHandlers
             JObject jObject = JObject.Parse(result);
             if (request.RequestUri.AbsolutePath.Contains("auth") &&
                 !request.Method.Equals(HttpMethod.Get) &&
-                !RuntimeCache.ExistItem(idTokenCliente)
-                )
+            !RuntimeCache.ExistItem(idTokenCliente))
             {
                 string clientPublicKey = (string)jObject.SelectToken("Machine.PgpPublicKey");
                 if (String.IsNullOrEmpty(clientPublicKey))
@@ -145,6 +148,9 @@ namespace Security.Framework.MessageHandlers
 
             // transforma el contenido al formato media type entrante
             var content = new StringContent(result, Encoding.UTF8, mediaType);
+
+
+
             request.Content = content;
         }
 
