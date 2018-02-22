@@ -178,4 +178,7 @@
     <value>Content-SHA3</value>
     <comment>Header que contiene la firma del contenido SHA3 (sin cifrar)</comment>
   </data>
+  <data name="Header_BEARERTOKEN" xml:space="preserve">
+    <value>bearer-token</value>
+  </data>
 </root>

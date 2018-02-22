@@ -62,6 +62,12 @@ namespace Security.Framework.MessageHandlers
                 throw new ObjectNotFoundException("Propiedad Header_CONTENT_SHA3 no encontrada en archivo de propiedades (.resx)");
             }
 
+            string bearerTokenHeader = Properties.Messages.Header_BEARERTOKEN.ToString();
+            if (String.IsNullOrEmpty(bearerTokenHeader))
+            {
+                throw new ObjectNotFoundException("Propiedad Header_BEARERTOKEN no encontrada en archivo de propiedades (.resx)");
+            }
+
             lHeaderList.Add(appSignature);
             lHeaderList.Add(machineSignature);
 
