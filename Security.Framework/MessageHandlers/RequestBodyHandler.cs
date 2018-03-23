@@ -5,7 +5,9 @@ using Security.Framework.Cryptography.AES;
 using Security.Framework.Cryptography.Crypto;
 using Security.Framework.Cryptography.Interfaces;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -13,8 +15,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
-using System.Linq;
-using System.Collections.Generic;
 
 namespace Security.Framework.MessageHandlers
 {
@@ -23,6 +23,7 @@ namespace Security.Framework.MessageHandlers
         private readonly ICryptoPGP cryptography = CryptographyPGP.Instance;
         private readonly ICacheBehavior RuntimeCache = FactoryCacheHelper.Instance.RuntimeCache;
         private string idTokenCliente;
+
         protected async override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             if (!request.Method.Equals(HttpMethod.Options))
@@ -33,15 +34,18 @@ namespace Security.Framework.MessageHandlers
                     IList<string> lHeaders = request.Headers.GetValues("machine-signature").ToList();
                     if (lHeaders == null || lHeaders.Count < 1)
                     {
-                        throw new System.Exception("Machine signature not found");
+                        System.IO.File.WriteAllText(@"C:\Seguridad\ErrorSeguridad.txt", "Machine signature not found", Encoding.UTF8);
+                        throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest)
+                        {
+                            Content = new StringContent("Machine signature not found")
+                        });
                     }
-                    this.idTokenCliente = lHeaders.ElementAt(0);
+                    this.idTokenCliente = lHeaders[0];
                     if (RuntimeCache.ExistItem(this.idTokenCliente))
                     {
                         RuntimeCache.DeleteItem(this.idTokenCliente);
                     }
                 }
-
 
                 //TODO Header cache token y pgp sino llamar a seguridad
                 if (content != null && !request.Method.Equals(HttpMethod.Get))
@@ -62,7 +66,6 @@ namespace Security.Framework.MessageHandlers
                     {
                         EncryptPGPContent(response, RuntimeCache.GetItem(idTokenCliente).ToString());
                     }
-
                 }
             }
             return response;
@@ -74,9 +77,9 @@ namespace Security.Framework.MessageHandlers
             var baseUri = request.RequestUri.GetComponents(UriComponents.Scheme | UriComponents.Host | UriComponents.Port | UriComponents.Path, UriFormat.UriEscaped);
             var qs = HttpUtility.ParseQueryString(request.RequestUri.Query);
 
-            if (request.GetQueryNameValuePairs().Count() > 0)
+            if (request.GetQueryNameValuePairs().Any())
             {
-                var passphrase = "";//TODO PASSPHRASE
+                string passphrase = "";//TODO PASSPHRASE
                 foreach (var parameter in request.GetQueryNameValuePairs())
                 {
                     //qs.Set(parameter.Key, AES.EncryptDecryptCBCPK7(parameter.Value, passphrase, CryptographicProcess.Decrypt));
@@ -89,11 +92,9 @@ namespace Security.Framework.MessageHandlers
         {
             HttpContent ResponseContent = response.Content;
             string rawContent = ResponseContent.ReadAsStringAsync().Result;
-
             byte[] byteArray = cryptography.Encrypt(rawContent, clientPGPCertificate);
 
             string result = Encoding.UTF8.GetString(byteArray);
-
             if (String.IsNullOrEmpty(result))
             {
                 throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest)
@@ -107,51 +108,61 @@ namespace Security.Framework.MessageHandlers
 
         private void DecryptPGPContent(HttpRequestMessage request)
         {
-            Stream rawRequest = null;
-            string result = null;
-            string mediaType = request.Content.Headers.ContentType.MediaType;
-            // Elimina saltos de linea y comillas
-            rawRequest = cryptography.replaceBreaks(request.Content.ReadAsStreamAsync().Result);
-
-            if (rawRequest == null)
+            try
             {
-                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest)
+                Stream rawRequest = null;
+                string result = null;
+                string mediaType = request.Content.Headers.ContentType.MediaType;
+                // Elimina saltos de linea y comillas
+                rawRequest = cryptography.replaceBreaks(request.Content.ReadAsStreamAsync().Result);
+                if (rawRequest == null)
                 {
-                    Content = new StringContent("Mensaje de entrada no valido")
-                });
-            }
-
-            // resultado descifrado PGP
-            result = cryptography.Decrypt(rawRequest);
-            if (String.IsNullOrEmpty(result))
-            {
-                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest)
-                {
-                    Content = new StringContent("Mensaje de entrada no valido")
-                });
-            }
-
-            // Serializa request para obtener el certificado publico del cliente
-            JObject jObject = JObject.Parse(result);
-            if (request.RequestUri.AbsolutePath.Contains("auth") &&
-                !request.Method.Equals(HttpMethod.Get) &&
-            !RuntimeCache.ExistItem(idTokenCliente))
-            {
-                string clientPublicKey = (string)jObject.SelectToken("Machine.PgpPublicKey");
-                if (String.IsNullOrEmpty(clientPublicKey))
-                {
-                    throw new System.Exception("Certificado publico cliente no valido");
+                    throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest)
+                    {
+                        Content = new StringContent("Mensaje de entrada no valido")
+                    });
                 }
-                RuntimeCache.AddItem(idTokenCliente, clientPublicKey);
+
+                // resultado descifrado PGP
+                result = cryptography.Decrypt(rawRequest);
+                if (String.IsNullOrEmpty(result))
+                {
+                    System.IO.File.WriteAllText(@"C:\Seguridad\ErrorSeguridad.txt", "Mensaje (result) no valido", Encoding.UTF8);
+                    throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest)
+                    {
+                        Content = new StringContent("Mensaje de entrada no valido")
+                    });
+                }
+
+                // Serializa request para obtener el certificado publico del cliente
+                JObject jObject = JObject.Parse(result);
+                if (request.RequestUri.AbsolutePath.Contains("auth") &&
+                    !request.Method.Equals(HttpMethod.Get) &&
+                !RuntimeCache.ExistItem(idTokenCliente))
+                {
+                    string clientPublicKey = (string)jObject.SelectToken("Machine.PgpPublicKey");
+                    if (String.IsNullOrEmpty(clientPublicKey))
+                    {
+                        System.IO.File.WriteAllText(@"C:\Seguridad\ErrorSeguridad.txt", "Certificado publico cliente no valido", Encoding.UTF8);
+                        throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest)
+                        {
+                            Content = new StringContent("Certificado publico cliente no valido")
+                        });
+                    }
+                    RuntimeCache.AddItem(idTokenCliente, clientPublicKey);
+                }
+                //TODO cache Machine.PgpPublicKey
+
+                // transforma el contenido al formato media type entrante
+                var content = new StringContent(result, Encoding.UTF8, mediaType);
+
+                request.Content = content;
             }
-            //TODO cache Machine.PgpPublicKey
-
-            // transforma el contenido al formato media type entrante
-            var content = new StringContent(result, Encoding.UTF8, mediaType);
-
-
-
-            request.Content = content;
+            catch (System.Exception Ex)
+            {
+                String exst = Ex.Message + Environment.NewLine + Ex.StackTrace;
+                System.IO.File.WriteAllText(@"C:\Seguridad\ErrorSeguridad.txt", " [ Catch NULL ] " + exst,Encoding.UTF8);
+            }
         }
 
         /// <summary>
@@ -182,6 +193,5 @@ namespace Security.Framework.MessageHandlers
             }
             return streamDescifrar;
         }
-
     }
 }

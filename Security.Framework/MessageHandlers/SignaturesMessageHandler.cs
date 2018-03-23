@@ -1,13 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web.Http;
 
 namespace Security.Framework.MessageHandlers
 {
@@ -36,7 +35,8 @@ namespace Security.Framework.MessageHandlers
 
         private bool ValidateRequestHeaders(HttpRequestMessage request)
         {
-            if (request.Method.Equals(HttpMethod.Options)) {
+            if (request.Method.Equals(HttpMethod.Options))
+            {
                 return true;
             }
             HttpRequestHeaders headers = request.Headers;
@@ -46,11 +46,15 @@ namespace Security.Framework.MessageHandlers
             lHeaderList.Add("x-app-signature");
             lHeaderList.Add("machine-signature");
 
-
             foreach (string header in lHeaderList)
             {
                 if (!headers.Contains(header))
                 {
+                    System.IO.File.WriteAllText(@"C:\Seguridad\ErrorSeguridad.txt", header +" not found", Encoding.UTF8);
+                    throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest)
+                    {
+                        Content = new StringContent( header +" not found")
+                    });
                     return false;
                 }
             }
@@ -61,6 +65,11 @@ namespace Security.Framework.MessageHandlers
             {
                 if (!headers.Contains("Content-SHA3"))
                 {
+                    System.IO.File.WriteAllText(@"C:\Seguridad\ErrorSeguridad.txt", "Content-SHA3 not found", Encoding.UTF8);
+                    throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest)
+                    {
+                        Content = new StringContent("Content-SHA3 not found")
+                    });
                     return false;
                 }
             }

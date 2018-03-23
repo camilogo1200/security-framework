@@ -18,16 +18,12 @@ namespace Security.Framework.Cryptography.AES
     /// </summary>
     public class CryptoAES : IAESCipher
     {
-
-
-
         #region Singleton 
         /// <summary>         /// Atributo utilizado para evitar problemas con multithreading en el singleton.         /// </summary>         private readonly static object syncRoot = new Object();          private static volatile CryptoAES instance;
 
         public static CryptoAES Instance         {             get             {                 if (instance == null)                 {                     lock (syncRoot)                     {                         if (instance == null)                         {                             instance = new CryptoAES();                         }                     }                 }                 return instance;             }         }          //private CryptoAES()         //{          //}
 
         #endregion Singleton
-
 
         /// <summary>
         /// Encrypt or Decrypt message using AES. With public server key
@@ -37,7 +33,7 @@ namespace Security.Framework.Cryptography.AES
         /// <returns></returns>
         public string EncryptDecrypt(string strToProcess, CryptographicProcess process)
         {
-            bool isEncrypt = (process.ToString().Equals("Encrypt")) ? true : false;
+            bool isEncrypt = (process.ToString().Equals("Encrypt"));
             FileUtilities util = new FileUtilities();
             strToProcess = strToProcess.Trim();
             string keyText = Encoding.UTF8.GetString(util.loadPublicKeyFromFile().GetPublicKey().GetEncoded());
@@ -55,9 +51,9 @@ namespace Security.Framework.Cryptography.AES
             return result;
         }
 
-        public string EncryptDecrypt(string strToProcess,string pass, CryptographicProcess process)
+        public string EncryptDecrypt(string strToProcess, string pass, CryptographicProcess process)
         {
-            bool isEncrypt = (process.ToString().Equals("Encrypt")) ? true : false;
+            bool isEncrypt = (process.ToString().Equals("Encrypt"));
             FileUtilities util = new FileUtilities();
             strToProcess = strToProcess.Trim();
             string keyText = pass;//Encoding.UTF8.GetString(util.loadPublicKeyFromFile().GetPublicKey().GetEncoded());
@@ -111,14 +107,5 @@ namespace Security.Framework.Cryptography.AES
 
             return result;
         }
-
-
-
-            // Debe traer llave de seguridad
-            var keyBytes = Encoding.UTF8.GetBytes("7061737323313233");
-
-
-
-
     }
 }
