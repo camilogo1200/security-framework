@@ -82,7 +82,8 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.11.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Owin, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f0ebd12fd5e55cc5, processorArchitecture=MSIL">
       <HintPath>..\packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
@@ -172,6 +173,7 @@
     <Compile Include="Exception\MalformedUrlSecurityException.cs" />
     <Compile Include="Exception\SecurityException.cs" />
     <Compile Include="Filters\RequireHttpsAttribute.cs" />
+    <Compile Include="Filters\ValidateAccessTokenAttribute.cs" />
     <Compile Include="Formatter\PlainTextFormatter.cs" />
     <Compile Include="MessageHandlers\ApiKeyHandler.cs" />
     <Compile Include="MessageHandlers\BodyEncriptionHandler.cs" />
@@ -199,9 +201,13 @@
     <Folder Include="Cryptography\PGP\Filters\" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
+    <None Include="app.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="package.builder.json" />
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="Security.Framework.nuspec" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

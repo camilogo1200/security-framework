@@ -5,9 +5,7 @@ using Security.Framework.Cryptography.AES;
 using Security.Framework.Cryptography.Crypto;
 using Security.Framework.Cryptography.Interfaces;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -15,6 +13,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace Security.Framework.MessageHandlers
 {
@@ -23,7 +23,6 @@ namespace Security.Framework.MessageHandlers
         private readonly ICryptoPGP cryptography = CryptographyPGP.Instance;
         private readonly ICacheBehavior RuntimeCache = FactoryCacheHelper.Instance.RuntimeCache;
         private string idTokenCliente;
-
         protected async override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             if (!request.Method.Equals(HttpMethod.Options))
@@ -47,6 +46,7 @@ namespace Security.Framework.MessageHandlers
                     }
                 }
 
+
                 //TODO Header cache token y pgp sino llamar a seguridad
                 if (content != null && !request.Method.Equals(HttpMethod.Get))
                 {
@@ -66,6 +66,7 @@ namespace Security.Framework.MessageHandlers
                     {
                         EncryptPGPContent(response, RuntimeCache.GetItem(idTokenCliente).ToString());
                     }
+
                 }
             }
             return response;
@@ -92,9 +93,11 @@ namespace Security.Framework.MessageHandlers
         {
             HttpContent ResponseContent = response.Content;
             string rawContent = ResponseContent.ReadAsStringAsync().Result;
+
             byte[] byteArray = cryptography.Encrypt(rawContent, clientPGPCertificate);
 
             string result = Encoding.UTF8.GetString(byteArray);
+
             if (String.IsNullOrEmpty(result))
             {
                 throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest)

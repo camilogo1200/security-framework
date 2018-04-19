@@ -1,12 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web.Http;
 
 namespace Security.Framework.MessageHandlers
 {
@@ -65,11 +66,6 @@ namespace Security.Framework.MessageHandlers
             {
                 if (!headers.Contains("Content-SHA3"))
                 {
-                    System.IO.File.WriteAllText(@"C:\Seguridad\ErrorSeguridad.txt", "Content-SHA3 not found", Encoding.UTF8);
-                    throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest)
-                    {
-                        Content = new StringContent("Content-SHA3 not found")
-                    });
                     return false;
                 }
             }

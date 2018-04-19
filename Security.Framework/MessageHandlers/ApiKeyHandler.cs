@@ -4,7 +4,6 @@ using System.Data;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -35,6 +34,8 @@ namespace Security.Framework.MessageHandlers
 
         private bool ValidateKey(HttpRequestMessage message)
         {
+            
+
             string appSignature = Properties.Messages.Header_X_APP_SIGNATURE.ToString();
 
             if (String.IsNullOrEmpty(appSignature))
@@ -43,7 +44,6 @@ namespace Security.Framework.MessageHandlers
             }
             if (!message.Headers.Contains(appSignature))
             {
-                System.IO.File.WriteAllText(@"C:\Seguridad\ErrorSeguridad.txt", "Header_X_APP_SIGNATURE no encontrado en request ", Encoding.UTF8);
                 return false;
             }
             IEnumerator<string> enumeratorHeader = message.Headers.GetValues(appSignature).GetEnumerator();

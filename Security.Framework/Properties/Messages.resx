@@ -181,4 +181,7 @@
   <data name="Header_BEARERTOKEN" xml:space="preserve">
     <value>bearer-token</value>
   </data>
+  <data name="Header_ACCESS_TOKEN" xml:space="preserve">
+    <value>access-token</value>
+  </data>
 </root>

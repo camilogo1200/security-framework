@@ -88,6 +88,15 @@ namespace Security.Framework.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to access-token.
+        /// </summary>
+        internal static string Header_ACCESS_TOKEN {
+            get {
+                return ResourceManager.GetString("Header_ACCESS_TOKEN", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to bearer-token.
         /// </summary>
         internal static string Header_BEARERTOKEN {

@@ -18,6 +18,7 @@ namespace Security.Framework.Cryptography.Filters
 {
     public class APIAuthenticationFilterAttribute : ActionFilterAttribute
     {
+
         public override void OnActionExecuting(HttpActionContext filterContext)
         {
             Type type = null;

@@ -1,4 +1,5 @@
 ﻿using Cache.Factory.Util;
+using Security.Framework.Cryptography.Crypto;
 using Security.Framework.Cryptography.Hashing;
 using System;
 using System.Security.Cryptography;
@@ -17,7 +18,7 @@ namespace Security.Framework.TokenManager
 
         public string GenerateTokenKey(string tokenBase, string username)
         {
-            return string.Concat(tokenBase, ":", new Hashing().getHashingStr(username, DigestAlgorithm.SHA_512), ":", GenerateKey(DateTime.Now, true));
+            return string.Concat(tokenBase, ":", new Hashing().getHashingStr(username,DigestAlgorithm.SHA_512), ":", GenerateKey(DateTime.Now, true));
         }
 
         public bool IsTokenValid(string tokenBaseId)
@@ -43,9 +44,9 @@ namespace Security.Framework.TokenManager
             firstCheck = false;
             try
             {
-                if (UtilCache.MemoryInstance.ExistItem(string.Concat(tokenBaseId, ":", new Hashing().getHashingStr(username, DigestAlgorithm.SHA_512), ":", GenerateKey(DateTime.Now, true))))
+                if (UtilCache.MemoryInstance.ExistItem(string.Concat(tokenBaseId, ":", new Hashing().getHashingStr(username,DigestAlgorithm.SHA_512), ":", GenerateKey(DateTime.Now, true))))
                 {
-                    TokenSession ts = (TokenSession)UtilCache.MemoryInstance.GetItem(string.Concat(tokenBaseId, ":", new Hashing().getHashingStr(username, DigestAlgorithm.SHA_512), ":", GenerateKey(DateTime.Now, true)));
+                    TokenSession ts = (TokenSession)UtilCache.MemoryInstance.GetItem(string.Concat(tokenBaseId, ":", new Hashing().getHashingStr(username,DigestAlgorithm.SHA_512), ":", GenerateKey(DateTime.Now, true)));
                     return (ts.FechaExpiracion > DateTime.Now);
                 }
 
