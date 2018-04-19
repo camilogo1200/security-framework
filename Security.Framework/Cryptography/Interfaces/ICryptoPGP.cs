@@ -9,8 +9,11 @@ namespace Security.Framework.Cryptography.Interfaces
         string encrypt(string strToEncrypt, string tokenID);
 
         string Decrypt(Stream inputStream);
-        byte[] Encrypt(string rawResponse,string clientPGPCertificate);
+
+        byte[] Encrypt(string rawResponse, string clientPGPCertificate);
+
         Stream replaceBreaks(Stream messageOrigen);
+
         string replaceBreakAndQuotationMarks(string rawRequest);
     }
 }

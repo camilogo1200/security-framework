@@ -45,16 +45,12 @@ namespace Security.Framework.Cryptography.Crypto
         private string passPrivateKey = String.Empty;
         private char[] pass = null;
 
-
-
         #region Singleton 
         /// <summary>         /// Atributo utilizado para evitar problemas con multithreading en el singleton.         /// </summary>         private readonly static object syncRoot = new Object();          private static volatile CryptographyPGP instance;
 
         public static CryptographyPGP Instance         {             get             {                 if (instance == null)                 {                     lock (syncRoot)                     {                         if (instance == null)                         {                             instance = new CryptographyPGP();                         }                     }                 }                 return instance;             }         }          private CryptographyPGP()         {          }
 
         #endregion Singleton
-
-
 
         /// <summary>
         /// Certificado del cliente
@@ -440,7 +436,6 @@ namespace Security.Framework.Cryptography.Crypto
             }
             return streamDescifrar;
         }
-
 
         #region Obsolete  GPG llamado a consola
 

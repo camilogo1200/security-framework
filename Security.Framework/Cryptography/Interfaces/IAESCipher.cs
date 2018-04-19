@@ -6,7 +6,9 @@ namespace Security.Framework.Cryptography.Interfaces
     public interface IAESCipher
     {
         string EncryptDecrypt(string strToProcess, CryptographicProcess process);
+
         string EncryptDecrypt(string strToProcess, string passphrase, CryptographicProcess process);
+
         String DecryptIt(String s, byte[] key, byte[] IV);
     }
 }
