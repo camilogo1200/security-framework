@@ -161,7 +161,7 @@ namespace Security.Framework.MessageHandlers
             catch (System.Exception Ex)
             {
                 String exst = Ex.Message + Environment.NewLine + Ex.StackTrace;
-                System.IO.File.WriteAllText(@"C:\Seguridad\ErrorSeguridad.txt", " [ Catch NULL ] " + exst,Encoding.UTF8);
+                System.IO.File.WriteAllText(@"C:\Seguridad\ErrorSeguridad.txt", " [ Catch NULL ] " + exst, Encoding.UTF8);
             }
         }
 

@@ -50,10 +50,10 @@ namespace Security.Framework.MessageHandlers
             {
                 if (!headers.Contains(header))
                 {
-                    System.IO.File.WriteAllText(@"C:\Seguridad\ErrorSeguridad.txt", header +" not found", Encoding.UTF8);
+                    System.IO.File.WriteAllText(@"C:\Seguridad\ErrorSeguridad.txt", header + " not found", Encoding.UTF8);
                     throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest)
                     {
-                        Content = new StringContent( header +" not found")
+                        Content = new StringContent(header + " not found")
                     });
                     return false;
                 }
