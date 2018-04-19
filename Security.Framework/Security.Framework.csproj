@@ -173,6 +173,7 @@
     <Compile Include="Exception\MalformedUrlSecurityException.cs" />
     <Compile Include="Exception\SecurityException.cs" />
     <Compile Include="Filters\RequireHttpsAttribute.cs" />
+    <Compile Include="Filters\ValidateAccessTokenAttribute.cs" />
     <Compile Include="Formatter\PlainTextFormatter.cs" />
     <Compile Include="MessageHandlers\ApiKeyHandler.cs" />
     <Compile Include="MessageHandlers\BodyEncriptionHandler.cs" />

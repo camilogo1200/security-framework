@@ -115,7 +115,7 @@ namespace Security.Framework.Cryptography.AES
 
 
             // Debe traer llave de seguridad
-            var keyBytes = Encoding.UTF8.GetBytes("7061737323313233");
+            //var keyBytes = Encoding.UTF8.GetBytes("7061737323313233");
 
 
 
